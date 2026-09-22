@@ -1,0 +1,2066 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulasi TKA — Matematika: Turunan Fungsi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg-deep:#0A0F1C;
+  --bg-panel:#111A2E;
+  --bg-panel-2:#16213A;
+  --bg-raised:#1C2A47;
+  --line:#26375C;
+  --ink:#E9EDF7;
+  --muted:#8B96B3;
+  --muted-2:#5E6B8C;
+  --accent:#4FD1C5;
+  --accent-dim:#2A6E68;
+  --accent-2:#F6AD55;
+  --accent-2-dim:#8A5A28;
+  --danger:#F26B6B;
+  --danger-dim:#5C2A2A;
+  --success:#5FD68A;
+  --success-dim:#245A3C;
+  --font-ui:'Space Grotesk',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',monospace;
+  --radius:10px;
+}
+:root:not([data-theme="light"]){--bg-deep:#0A0F1C;}
+:root[data-theme="dark"]{--bg-deep:#0A0F1C;}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg-deep:#0A0F1C;}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow-x:hidden;}
+html{scroll-padding-top:env(safe-area-inset-top,0px);}
+body{
+  margin:0;
+  background:var(--bg-deep);
+  color:var(--ink);
+  font-family:var(--font-ui);
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  min-height:100%;
+  touch-action:manipulation;
+  -webkit-text-size-adjust:100%;
+  background-image:
+    radial-gradient(circle at 15% 8%, rgba(79,209,197,0.07), transparent 45%),
+    radial-gradient(circle at 85% 92%, rgba(246,173,85,0.06), transparent 45%);
+}
+::selection{background:var(--accent);color:#04211E;}
+button{font-family:inherit;}
+::-webkit-scrollbar{width:10px;height:10px;}
+::-webkit-scrollbar-track{background:var(--bg-panel);}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+::-webkit-scrollbar-thumb:hover{background:var(--muted-2);}
+
+/* ===================== UTIL ===================== */
+.hidden{display:none !important;}
+.formula{font-family:var(--font-mono);letter-spacing:0.2px;}
+.pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--line);color:var(--muted);background:var(--bg-panel-2);}
+.pill.accent{color:var(--accent);border-color:var(--accent-dim);background:rgba(79,209,197,0.08);}
+.pill.amber{color:var(--accent-2);border-color:var(--accent-2-dim);background:rgba(246,173,85,0.08);}
+
+/* ===================== LOGIN ===================== */
+#loginScreen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:32px 18px;
+  position:relative;
+  overflow:hidden;
+}
+.login-bg-grid{
+  position:absolute;inset:0;
+  background-image:
+    linear-gradient(rgba(79,209,197,0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,209,197,0.05) 1px, transparent 1px);
+  background-size:38px 38px;
+  mask-image:radial-gradient(ellipse at center, black 10%, transparent 75%);
+  pointer-events:none;
+}
+.login-card{
+  position:relative;
+  width:100%;
+  max-width:460px;
+  background:linear-gradient(180deg,var(--bg-panel),var(--bg-panel-2));
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:34px 30px 28px;
+  box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);
+}
+.login-eyebrow{font-family:var(--font-mono);color:var(--accent);font-size:12px;letter-spacing:1.5px;margin-bottom:6px;}
+.login-title{font-size:clamp(19px,5.5vw,23px);font-weight:700;margin:0 0 4px;line-height:1.25;}
+.login-sub{color:var(--muted);font-size:13.5px;margin:0 0 22px;line-height:1.5;}
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;font-weight:600;}
+.field input,.field select{
+  width:100%;
+  background:var(--bg-deep);
+  border:1px solid var(--line);
+  border-radius:8px;
+  color:var(--ink);
+  padding:11px 12px;
+  font-size:14.5px;
+  font-family:var(--font-ui);
+  outline:none;
+  transition:border-color .15s, box-shadow .15s;
+}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(79,209,197,0.15);}
+.field input[readonly]{color:var(--muted);background:var(--bg-panel-2);cursor:default;}
+.field-error{display:none;color:var(--danger);font-size:12px;margin-top:6px;font-weight:600;}
+.field.invalid input,.field.invalid select{border-color:var(--danger);}
+.field.invalid .field-error{display:block;}
+.login-btn{
+  width:100%;
+  padding:13px;
+  border-radius:9px;
+  border:none;
+  background:var(--accent);
+  color:#04211E;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
+  margin-top:6px;
+  transition:transform .1s, background .15s;
+}
+.login-btn:hover{background:#63e0d4;}
+.login-btn:active{transform:scale(0.98);}
+.login-note{display:flex;gap:8px;align-items:flex-start;color:var(--muted-2);font-size:11.5px;margin-top:16px;line-height:1.5;}
+
+/* ===================== APP SHELL ===================== */
+#appScreen{min-height:100vh;display:flex;flex-direction:column;}
+.topbar{
+  display:flex;align-items:center;gap:14px;
+  padding:12px 20px;
+  background:var(--bg-panel);
+  border-bottom:1px solid var(--line);
+  position:sticky;top:0;z-index:50;
+  flex-wrap:wrap;
+}
+.topbar-title{display:flex;flex-direction:column;gap:1px;margin-right:auto;}
+.topbar-title b{font-size:16px;font-weight:700;}
+.topbar-title span{font-size:11.5px;color:var(--muted);font-family:var(--font-mono);}
+.user-chip{
+  display:flex;align-items:center;gap:9px;
+  background:var(--bg-panel-2);border:1px solid var(--line);
+  border-radius:999px;padding:5px 12px 5px 5px;font-size:12.5px;
+}
+.user-chip .avatar{
+  width:26px;height:26px;border-radius:50%;
+  background:linear-gradient(135deg,var(--accent),var(--accent-2));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:#0A0F1C;font-size:12px;
+}
+.icon-btn{
+  width:36px;height:36px;border-radius:9px;border:1px solid var(--line);
+  background:var(--bg-panel-2);color:var(--ink);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+  transition:background .15s, border-color .15s;
+}
+.icon-btn:hover{background:var(--bg-raised);border-color:var(--muted-2);}
+.icon-btn.danger:hover{border-color:var(--danger);color:var(--danger);}
+
+.app-body{display:flex;flex:1;min-height:0;}
+.tab-rail{
+  width:190px;flex-shrink:0;
+  background:var(--bg-panel);
+  border-right:1px solid var(--line);
+  padding:16px 10px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.tab-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:11px 12px;border-radius:9px;border:none;background:transparent;
+  color:var(--muted);font-size:13.5px;font-weight:600;cursor:pointer;text-align:left;
+  transition:background .15s, color .15s;
+}
+.tab-btn .tab-ic{font-size:16px;width:20px;text-align:center;}
+.tab-btn:hover{background:var(--bg-panel-2);color:var(--ink);}
+.tab-btn.active{background:rgba(79,209,197,0.1);color:var(--accent);}
+.tab-rail-foot{margin-top:auto;padding:10px 8px 0;color:var(--muted-2);font-size:10.5px;line-height:1.5;border-top:1px solid var(--line);padding-top:12px;}
+
+.content-area{flex:1;min-width:0;overflow-y:auto;padding:26px 30px 60px;}
+.panel{max-width:980px;margin:0 auto;}
+.panel-head{margin-bottom:22px;}
+.panel-head h1{font-size:clamp(19px,4.2vw,22px);margin:0 0 6px;font-weight:700;}
+.panel-head p{color:var(--muted);font-size:13.5px;margin:0;line-height:1.6;max-width:640px;}
+
+/* mobile tab rail -> top scroll bar */
+@media (max-width:840px){
+  .app-body{flex-direction:column;}
+  .tab-rail{
+    width:100%;flex-direction:row;overflow-x:auto;border-right:none;
+    border-bottom:1px solid var(--line);padding:10px 12px;gap:6px;
+  }
+  .tab-rail-foot{display:none;}
+  .tab-btn{white-space:nowrap;padding:9px 12px;}
+  .content-area{padding:18px 16px 50px;}
+}
+
+/* ===================== ACCORDION (TEORI) ===================== */
+.accordion-item{
+  border:1px solid var(--line);border-radius:12px;margin-bottom:12px;
+  background:var(--bg-panel);overflow:hidden;
+}
+.accordion-head{
+  display:flex;align-items:center;gap:12px;width:100%;
+  padding:15px 18px;background:none;border:none;cursor:pointer;text-align:left;color:var(--ink);
+}
+.accordion-head .num{
+  font-family:var(--font-mono);color:var(--accent);font-size:12px;font-weight:700;
+  width:26px;height:26px;border-radius:7px;background:rgba(79,209,197,0.1);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.accordion-head .ttl{flex:1;font-size:14.5px;font-weight:600;}
+.accordion-head .chev{color:var(--muted);transition:transform .2s;font-size:13px;}
+.accordion-item.open .accordion-head .chev{transform:rotate(180deg);}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .25s ease;}
+.accordion-item.open .accordion-body{max-height:3000px;}
+.accordion-inner{padding:0 18px 20px 56px;color:var(--muted);font-size:13.5px;line-height:1.75;}
+.accordion-inner h4{color:var(--ink);font-size:13px;margin:14px 0 6px;font-weight:700;}
+.accordion-inner h4:first-child{margin-top:0;}
+.formula-box{
+  background:var(--bg-deep);border:1px solid var(--line);border-left:3px solid var(--accent);
+  border-radius:8px;padding:10px 14px;margin:8px 0;font-family:var(--font-mono);
+  color:var(--accent);font-size:13.5px;overflow-x:auto;
+}
+.example-box{
+  background:var(--bg-panel-2);border:1px solid var(--line);border-radius:8px;
+  padding:12px 14px;margin-top:8px;
+}
+.example-box .ex-label{color:var(--accent-2);font-size:11px;font-weight:700;letter-spacing:.5px;margin-bottom:6px;}
+
+/* ===================== PROSEDUR ===================== */
+.proc-step{display:flex;gap:16px;margin-bottom:18px;}
+.proc-step .pn{
+  width:32px;height:32px;border-radius:9px;background:var(--bg-raised);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-weight:700;
+  color:var(--accent-2);flex-shrink:0;font-size:13px;
+}
+.proc-step .pc h4{margin:4px 0 6px;font-size:14.5px;}
+.proc-step .pc p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.65;}
+.proc-group-title{font-size:12px;text-transform:none;letter-spacing:.3px;color:var(--accent);font-weight:700;margin:26px 0 14px;padding-top:14px;border-top:1px solid var(--line);}
+.proc-group-title:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+
+/* ===================== SIMULASI ===================== */
+.sim-grid{display:grid;grid-template-columns:280px 1fr;gap:20px;}
+@media (max-width:840px){.sim-grid{grid-template-columns:1fr;}}
+.sim-controls,.sim-graph-wrap,.sim-steps{
+  background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;padding:18px;
+}
+.sim-controls h3,.sim-steps h3{font-size:13px;margin:0 0 14px;color:var(--ink);}
+.ctrl-group{margin-bottom:16px;}
+.ctrl-group label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;}
+.seg{display:flex;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:3px;gap:3px;}
+.seg button{flex:1;padding:7px;border:none;border-radius:6px;background:none;color:var(--muted);font-size:12.5px;font-weight:600;cursor:pointer;}
+.seg button.active{background:var(--accent);color:#04211E;}
+.slider-row{display:flex;align-items:center;gap:10px;}
+.slider-row input[type=range]{flex:1;accent-color:var(--accent);}
+.slider-row .val{font-family:var(--font-mono);color:var(--accent);font-size:12.5px;min-width:34px;text-align:right;}
+select.sim-select{width:100%;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;color:var(--ink);padding:8px 10px;font-size:13px;}
+.sim-graph-wrap canvas{width:100%;height:auto;display:block;border-radius:8px;background:#060B14;border:1px solid var(--line);}
+.sim-legend{display:flex;gap:16px;margin-top:10px;flex-wrap:wrap;}
+.sim-legend span{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);}
+.sim-legend i{width:14px;height:3px;border-radius:2px;display:inline-block;}
+.sim-formula-readout{margin-top:14px;display:flex;flex-direction:column;gap:8px;}
+.readout-row{display:flex;justify-content:space-between;align-items:center;background:var(--bg-deep);border:1px solid var(--line);border-radius:8px;padding:9px 12px;font-size:13px;}
+.readout-row .k{color:var(--muted);}
+.readout-row .v{font-family:var(--font-mono);color:var(--ink);font-weight:600;}
+.sim-steps{margin-top:20px;}
+.sim-step-line{padding:9px 0;border-bottom:1px dashed var(--line);font-size:13px;color:var(--muted);}
+.sim-step-line:last-child{border-bottom:none;}
+.sim-step-line b{color:var(--ink);}
+
+/* ===================== LATIHAN SOAL ===================== */
+.quiz-top{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+.quiz-stat{background:var(--bg-panel);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:12.5px;color:var(--muted);}
+.quiz-stat b{color:var(--ink);font-family:var(--font-mono);}
+.quiz-progress-bar{flex:1;min-width:120px;height:8px;background:var(--bg-panel-2);border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2));width:0%;transition:width .2s;}
+.quiz-layout{display:grid;grid-template-columns:1fr 210px;gap:18px;align-items:start;}
+@media (max-width:840px){.quiz-layout{grid-template-columns:1fr;}}
+.quiz-nav-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;padding:14px;}
+.qn-btn{
+  aspect-ratio:1;border-radius:7px;border:1px solid var(--line);background:var(--bg-deep);
+  color:var(--muted);font-size:11.5px;font-family:var(--font-mono);cursor:pointer;font-weight:600;
+}
+.qn-btn.answered{background:rgba(95,214,138,0.12);border-color:var(--success-dim);color:var(--success);}
+.qn-btn.current{outline:2px solid var(--accent);outline-offset:1px;}
+.question-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:22px;}
+.q-meta{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.q-stem{font-size:15px;line-height:1.7;margin-bottom:18px;}
+.q-stem .formula-box{margin-top:10px;}
+.opt-list{display:flex;flex-direction:column;gap:9px;}
+.opt-item{
+  display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border-radius:9px;
+  border:1px solid var(--line);background:var(--bg-deep);cursor:pointer;transition:border-color .15s,background .15s;
+}
+.opt-item:hover{border-color:var(--muted-2);}
+.opt-item.selected{border-color:var(--accent);background:rgba(79,209,197,0.07);}
+.opt-item .mark{
+  width:20px;height:20px;border-radius:6px;border:1.5px solid var(--muted-2);flex-shrink:0;margin-top:1px;
+  display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent;
+}
+.opt-item.radio-mark .mark{border-radius:50%;}
+.opt-item.selected .mark{border-color:var(--accent);background:var(--accent);color:#04211E;}
+.opt-item .otext{font-size:13.5px;line-height:1.55;}
+.opt-item.reveal.correct{border-color:var(--success);background:rgba(95,214,138,0.09);}
+.opt-item.reveal.wrong{border-color:var(--danger);background:rgba(242,107,107,0.09);}
+
+.table-scroll{width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:8px;}
+.kat-table{width:100%;min-width:420px;border-collapse:separate;border-spacing:0;font-size:13px;}
+.kat-table th,.kat-table td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;}
+.kat-table th{color:var(--muted);font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.kat-table th.catcol,.kat-table td.catcol{text-align:center;width:90px;min-width:78px;}
+.kat-radio{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;}
+.kat-table tr.reveal-correct td{background:rgba(95,214,138,0.06);}
+.kat-table tr.reveal-wrong td{background:rgba(242,107,107,0.06);}
+
+.quiz-actions{display:flex;justify-content:space-between;gap:10px;margin-top:20px;}
+.quiz-finish-row{margin-top:14px;text-align:right;}
+.btn{
+  padding:10px 18px;border-radius:9px;border:1px solid var(--line);background:var(--bg-panel-2);
+  color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;
+}
+.btn:hover{background:var(--bg-raised);}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#04211E;}
+.btn.primary:hover{background:#63e0d4;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.small{padding:6px 12px;font-size:12px;}
+
+.result-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:26px;text-align:center;}
+.result-score{font-size:46px;font-weight:700;font-family:var(--font-mono);color:var(--accent);margin:6px 0;}
+.result-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:20px;text-align:left;}
+.result-item{background:var(--bg-deep);border:1px solid var(--line);border-radius:10px;padding:12px 14px;}
+.result-item .lbl{font-size:11.5px;color:var(--muted);margin-bottom:4px;}
+.result-item .barbg{height:6px;background:var(--bg-panel-2);border-radius:4px;overflow:hidden;margin-top:6px;}
+.result-item .barfg{height:100%;background:var(--accent-2);}
+
+/* ===================== PENGEMBANG ===================== */
+.dev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
+.dev-card{background:var(--bg-panel);border:1px solid var(--line);border-radius:12px;padding:18px;}
+.dev-card h4{margin:0 0 8px;font-size:13.5px;color:var(--accent);}
+.dev-card p,.dev-card ul{margin:0;color:var(--muted);font-size:13px;line-height:1.7;}
+.dev-card ul{padding-left:18px;}
+.tech-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;}
+
+/* ===================== MODAL / TOAST ===================== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(6,10,18,0.72);backdrop-filter:blur(2px);
+  display:flex;align-items:center;justify-content:center;z-index:200;padding:20px;
+}
+.modal-box{background:var(--bg-panel);border:1px solid var(--line);border-radius:14px;padding:24px;max-width:380px;width:100%;}
+.modal-box h3{margin:0 0 8px;font-size:16px;}
+.modal-box p{margin:0 0 18px;color:var(--muted);font-size:13.5px;line-height:1.6;}
+.modal-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+
+.toast{
+  position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);
+  background:var(--bg-raised);border:1px solid var(--line);color:var(--ink);
+  padding:11px 18px;border-radius:9px;font-size:13px;z-index:300;opacity:0;
+  transition:opacity .2s, transform .2s;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,0.4);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ===================== RESPONSIF — SMARTPHONE &amp; LAPTOP ===================== */
+
+/* Laptop/desktop lebar (mis. layar besar) — manfaatkan ruang ekstra */
+@media (min-width:1400px){
+  .panel{max-width:1140px;}
+  .tab-rail{width:212px;}
+  .content-area{padding:30px 40px 70px;}
+}
+
+/* Tablet kecil &amp; laptop sempit */
+@media (max-width:1024px){
+  .content-area{padding:22px 22px 55px;}
+  .sim-grid{gap:16px;}
+}
+
+/* Ponsel besar / tablet potret */
+@media (max-width:600px){
+  .topbar{padding:10px 14px;gap:10px;}
+  .topbar-title b{font-size:14.5px;}
+  .topbar-title span{display:none;}
+  .user-chip{padding:4px 10px 4px 4px;font-size:11.5px;}
+  .user-chip .avatar{width:24px;height:24px;font-size:11px;}
+  .icon-btn{width:34px;height:34px;font-size:15px;}
+  .login-card{padding:26px 20px 22px;}
+  .login-note{font-size:11px;}
+  .accordion-head{padding:13px 14px;gap:10px;}
+  .accordion-inner{padding:0 14px 18px 14px;}
+  .accordion-head .ttl{font-size:13.5px;}
+  .question-card{padding:16px;}
+  .q-stem{font-size:14px;}
+  .result-card{padding:20px 16px;}
+  .result-score{font-size:38px;}
+  .modal-box{padding:20px;max-width:340px;}
+  .quiz-actions{flex-wrap:wrap;}
+  .quiz-actions .btn{flex:1;min-width:130px;}
+  .quiz-finish-row{text-align:stretch;}
+  .quiz-finish-row .btn{width:100%;}
+  .sim-controls,.sim-graph-wrap,.sim-steps{padding:14px;}
+  .dev-grid{grid-template-columns:1fr;}
+}
+
+/* Ponsel kecil */
+@media (max-width:420px){
+  .content-area{padding:14px 12px 44px;}
+  .panel-head p{font-size:12.5px;}
+  .quiz-stat{padding:7px 10px;font-size:11.5px;}
+  .qn-btn{font-size:10.5px;}
+  .btn{padding:9px 14px;font-size:12.5px;}
+  .field input,.field select{padding:10px 11px;font-size:14px;}
+  .login-eyebrow{font-size:11px;}
+  .pill{font-size:11px;padding:3px 9px;}
+  .result-grid{grid-template-columns:1fr 1fr;}
+}
+
+@media (prefers-reduced-motion: reduce){*{transition:none !important;animation:none !important;}}
+</style>
+</head>
+<body>
+
+<!-- =================================================================== LOGIN SCREEN =================================================================== -->
+<div id="loginScreen">
+  <div class="login-bg-grid"></div>
+  <div class="login-card">
+    <div class="login-eyebrow">LAB MAYA · TKA MATEMATIKA</div>
+    <h1 class="login-title">Simulasi TKA — Turunan Fungsi</h1>
+    <p class="login-sub">Lengkapi formulir berikut untuk memulai sesi lab maya. Materi mencakup turunan fungsi aljabar sampai fungsi trigonometri, jenjang SMA Fase F.</p>
+
+    <form id="loginForm" novalidate>
+      <div class="field">
+        <label for="loginDate">Tanggal &amp; Jam</label>
+        <input type="text" id="loginDate" readonly>
+      </div>
+      <div class="field" id="fieldNama">
+        <label for="loginNama">Nama Lengkap</label>
+        <input type="text" id="loginNama" placeholder="Contoh: Andi Pratama" autocomplete="off">
+        <div class="field-error">Nama wajib diisi, minimal 3 huruf dan hanya boleh huruf/spasi.</div>
+      </div>
+      <div class="field" id="fieldKelas">
+        <label for="loginKelas">Kelas</label>
+        <input type="text" id="loginKelas" placeholder="Contoh: XI IPA 2" autocomplete="off">
+        <div class="field-error">Kelas wajib diisi.</div>
+      </div>
+      <div class="field" id="fieldBidang">
+        <label for="loginBidang">Bidang Studi</label>
+        <select id="loginBidang">
+          <option value="Matematika" selected>Matematika</option>
+        </select>
+        <div class="field-error">Bidang studi wajib dipilih.</div>
+      </div>
+      <button type="submit" class="login-btn">Masuk ke Lab Maya →</button>
+    </form>
+    <div class="login-note">🔒 <span>Data pada formulir ini hanya digunakan untuk sesi simulasi berjalan dan tidak dikirim ke server manapun.</span></div>
+  </div>
+</div>
+
+<!-- =================================================================== APP SCREEN =================================================================== -->
+<div id="appScreen" class="hidden">
+  <div class="topbar">
+    <div class="topbar-title">
+      <b>Simulasi TKA · Matematika</b>
+      <span id="clockLine">Turunan Fungsi Aljabar — Trigonometri · Fase F</span>
+    </div>
+    <div class="user-chip">
+      <div class="avatar" id="userAvatar">A</div>
+      <div>
+        <div id="userNameLine" style="font-weight:700;">-</div>
+        <div id="userMetaLine" style="color:var(--muted);font-size:11px;">-</div>
+      </div>
+    </div>
+    <button class="icon-btn" id="btnSound" title="Aktif/Nonaktifkan Suara">🔊</button>
+    <button class="icon-btn" id="btnFullscreen" title="Layar Penuh">⛶</button>
+    <button class="icon-btn" id="btnReset" title="Reset Sesi">↺</button>
+    <button class="icon-btn danger" id="btnLogout" title="Keluar">⏻</button>
+  </div>
+
+  <div class="app-body">
+    <nav class="tab-rail">
+      <button class="tab-btn active" data-tab="teori"><span class="tab-ic">📘</span>Teori</button>
+      <button class="tab-btn" data-tab="prosedur"><span class="tab-ic">🧭</span>Prosedur</button>
+      <button class="tab-btn" data-tab="simulasi"><span class="tab-ic">📈</span>Simulasi</button>
+      <button class="tab-btn" data-tab="latihan"><span class="tab-ic">📝</span>Latihan TKA</button>
+      <button class="tab-btn" data-tab="pengembang"><span class="tab-ic">⚙️</span>Pengembang</button>
+      <div class="tab-rail-foot">Simulasi TKA v1.0<br>Materi: Turunan Fungsi</div>
+    </nav>
+
+    <main class="content-area">
+
+      <!-- TEORI -->
+      <section class="panel" id="tab-teori">
+        <div class="panel-head">
+          <h1>Teori Turunan Fungsi</h1>
+          <p>Klik setiap topik untuk membuka penjelasan lebih detail lengkap dengan rumus dan contoh soal pembahasan. Materi disusun bertahap dari aljabar hingga trigonometri.</p>
+        </div>
+        <div id="accordionRoot"></div>
+      </section>
+
+      <!-- PROSEDUR -->
+      <section class="panel hidden" id="tab-prosedur">
+        <div class="panel-head">
+          <h1>Prosedur</h1>
+          <p>Langkah sistematis untuk menyelesaikan soal turunan, serta panduan menggunakan setiap fitur pada lab maya ini.</p>
+        </div>
+        <div class="proc-group-title">A. Prosedur Menyelesaikan Soal Turunan</div>
+        <div id="procSoal"></div>
+        <div class="proc-group-title">B. Prosedur Menggunakan Lab Maya</div>
+        <div id="procApp"></div>
+      </section>
+
+      <!-- SIMULASI -->
+      <section class="panel hidden" id="tab-simulasi">
+        <div class="panel-head">
+          <h1>Simulasi Interaktif</h1>
+          <p>Ubah parameter fungsi dan amati bagaimana grafik f(x) dan turunannya f'(x) berubah, lengkap dengan garis singgung pada titik yang dipilih.</p>
+        </div>
+        <div class="sim-grid">
+          <div class="sim-controls">
+            <h3>Parameter Fungsi</h3>
+            <div class="ctrl-group">
+              <label>Jenis Fungsi</label>
+              <div class="seg" id="simTypeSeg">
+                <button class="active" data-type="pangkat">Pangkat</button>
+                <button data-type="trig">Trigonometri</button>
+              </div>
+            </div>
+            <div id="simPangkatCtrl">
+              <div class="ctrl-group">
+                <label>Koefisien a</label>
+                <div class="slider-row"><input type="range" id="simA" min="-5" max="5" step="1" value="1"><span class="val" id="simAVal">1</span></div>
+              </div>
+              <div class="ctrl-group">
+                <label>Pangkat n</label>
+                <div class="slider-row"><input type="range" id="simN" min="1" max="5" step="1" value="2"><span class="val" id="simNVal">2</span></div>
+              </div>
+            </div>
+            <div id="simTrigCtrl" class="hidden">
+              <div class="ctrl-group">
+                <label>Fungsi Trigonometri</label>
+                <select class="sim-select" id="simTrigFn">
+                  <option value="sin">sin(bx)</option>
+                  <option value="cos">cos(bx)</option>
+                  <option value="tan">tan(bx)</option>
+                </select>
+              </div>
+              <div class="ctrl-group">
+                <label>Koefisien a</label>
+                <div class="slider-row"><input type="range" id="simTA" min="-4" max="4" step="1" value="1"><span class="val" id="simTAVal">1</span></div>
+              </div>
+              <div class="ctrl-group">
+                <label>Koefisien b (frekuensi)</label>
+                <div class="slider-row"><input type="range" id="simTB" min="1" max="3" step="1" value="1"><span class="val" id="simTBVal">1</span></div>
+              </div>
+            </div>
+            <div class="ctrl-group">
+              <label>Titik Singgung x₀</label>
+              <div class="slider-row"><input type="range" id="simX0" min="-5" max="5" step="0.1" value="1"><span class="val" id="simX0Val">1.0</span></div>
+            </div>
+          </div>
+
+          <div>
+            <div class="sim-graph-wrap">
+              <canvas id="simCanvas" width="1200" height="620"></canvas>
+              <div class="sim-legend">
+                <span><i style="background:var(--accent)"></i> f(x)</span>
+                <span><i style="background:var(--accent-2)"></i> f'(x)</span>
+                <span><i style="background:#fff;opacity:.6"></i> Garis singgung di x₀</span>
+              </div>
+              <div class="sim-formula-readout">
+                <div class="readout-row"><span class="k">f(x)</span><span class="v formula" id="roFx">-</span></div>
+                <div class="readout-row"><span class="k">f'(x)</span><span class="v formula" id="roFpx">-</span></div>
+                <div class="readout-row"><span class="k">f(x₀)</span><span class="v formula" id="roFx0">-</span></div>
+                <div class="readout-row"><span class="k">Gradien f'(x₀)</span><span class="v formula" id="roGrad">-</span></div>
+              </div>
+            </div>
+            <div class="sim-steps">
+              <h3>Langkah Penurunan</h3>
+              <div id="simStepsBody"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LATIHAN -->
+      <section class="panel hidden" id="tab-latihan">
+        <div class="panel-head">
+          <h1>Latihan Soal Berstandar TKA</h1>
+          <p>50 soal acak — kombinasi Pilihan Ganda Sederhana, Pilihan Ganda Kompleks, dan Pilihan Ganda Kompleks Kategori. Soal dan urutannya berubah setiap sesi/reset.</p>
+        </div>
+        <div id="quizArea"></div>
+      </section>
+
+      <!-- PENGEMBANG -->
+      <section class="panel hidden" id="tab-pengembang">
+        <div class="panel-head">
+          <h1>Tentang Pengembang</h1>
+          <p>Informasi mengenai aplikasi lab maya ini.</p>
+        </div>
+        <div class="dev-grid">
+          <div class="dev-card">
+            <h4>Tentang Aplikasi</h4>
+            <p>Simulasi TKA — Matematika: Turunan Fungsi adalah lab maya interaktif untuk membantu siswa SMA Fase F memahami dan berlatih konsep turunan fungsi aljabar hingga trigonometri, sesuai kisi-kisi Tes Kemampuan Akademik (TKA).</p>
+          </div>
+          <div class="dev-card">
+            <h4>Teknologi</h4>
+            <p>Dibangun sepenuhnya dengan teknologi web standar, berjalan langsung di peramban tanpa instalasi tambahan.</p>
+            <div class="tech-tags">
+              <span class="pill accent">HTML5</span>
+              <span class="pill accent">CSS3</span>
+              <span class="pill accent">JavaScript</span>
+              <span class="pill amber">Canvas API</span>
+              <span class="pill amber">Web Audio API</span>
+            </div>
+          </div>
+          <div class="dev-card">
+            <h4>Kompetensi yang Dilatih</h4>
+            <ul>
+              <li>Pengetahuan matematika</li>
+              <li>Representasi matematis</li>
+              <li>Penalaran dan pembuktian matematis</li>
+              <li>Pemecahan masalah matematis</li>
+              <li>Koneksi matematis</li>
+            </ul>
+          </div>
+          <div class="dev-card">
+            <h4>Cakupan Muatan</h4>
+            <p>Turunan fungsi aljabar (aturan pangkat, jumlah/selisih, hasil kali, hasil bagi, rantai) sampai dengan turunan fungsi trigonometri dan penerapannya.</p>
+          </div>
+          <div class="dev-card">
+            <h4>Pengelolaan &amp; Privasi Data</h4>
+            <p>Setiap sesi latihan tercatat: nomor peserta, nama, kelas, bidang studi, waktu mulai/selesai, durasi, skor akhir, dan rincian jawaban per soal. Data ini dikirim ke Google Sheets milik pengajar untuk keperluan pemantauan hasil belajar, dan tidak dipublikasikan atau dibagikan ke pihak lain.</p>
+            <p style="margin-top:8px;">Nomor peserta dibuat otomatis &amp; berurutan per perangkat (tersimpan di <em>localStorage</em> peramban). Jika koneksi internet terputus saat pengiriman, data disimpan sementara di perangkat dan akan dicoba dikirim ulang otomatis saat aplikasi dibuka kembali.</p>
+          </div>
+          <div class="dev-card">
+            <h4>Status Data Tertunda</h4>
+            <p>Jika sebelumnya ada hasil latihan yang gagal terkirim ke Google Sheets, gunakan tombol berikut untuk mencoba mengirimkannya kembali.</p>
+            <button class="btn small" id="btnFlushPendingDev" style="margin-top:10px;">Cek &amp; Kirim Ulang Data Tertunda</button>
+          </div>
+          <div class="dev-card">
+            <h4>Catatan</h4>
+            <p>Aplikasi ini merupakan media pembelajaran mandiri dan tidak berafiliasi resmi dengan penyelenggara TKA manapun. Soal disusun sebagai bahan latihan konsep, bukan bank soal resmi.</p>
+          </div>
+          <div class="dev-card">
+            <h4>Versi</h4>
+            <p>v1.1.0 — Lab Maya Matematika<br>Materi: Turunan Fungsi · Fase F<br>+ Integrasi Google Sheets</p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<div id="modalRoot"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* =========================================================================================
+   CONFIG — PENGATURAN INTEGRASI GOOGLE SHEETS
+   ---------------------------------------------------------------------------------------
+   1. Buka spreadsheet tujuan:
+      https://docs.google.com/spreadsheets/d/1wzO1eUFUgQSJT0ysS_2lOrM3mZq9FlhMVaEx7r882RM/edit
+   2. Extensions > Apps Script, tempel kode "Code.gs" yang disertakan terpisah.
+   3. Deploy > New deployment > Web app (Execute as: Me, Who has access: Anyone).
+   4. Salin URL Web App hasil deploy, tempelkan ke GAS_WEB_APP_URL di bawah ini.
+========================================================================================= */
+const CONFIG = {
+  GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzIQtGO9WKWygMWCMKyplA0KaUHeQu3cMSyQTe4sE71mGaWygJiEOI_5O9HhG33BcbsUw/exec',
+  SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/1wzO1eUFUgQSJT0ysS_2lOrM3mZq9FlhMVaEx7r882RM/edit?usp=sharing',
+  PENDING_KEY: 'tka_matematika_pending_submissions',
+  PARTICIPANT_KEY: 'tka_matematika_last_participant_no'
+};
+
+/* =========================================================================================
+   0. UTILITAS UMUM
+========================================================================================= */
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function randIntNZ(min,max){ let v; do{ v=randInt(min,max); }while(v===0); return v; }
+function pick(arr){ return arr[randInt(0,arr.length-1)]; }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const supMap={'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻'};
+function sup(n){ return String(n).split('').map(c=>supMap[c]||c).join(''); }
+function fmtNum(n){ return Number.isInteger(n)? String(n) : n.toFixed(2); }
+
+function term(coef, exp, varName){
+  varName = varName || 'x';
+  if(coef===0) return '';
+  const sign = coef<0 ? '-' : '';
+  const abs = Math.abs(coef);
+  const coefStr = (abs===1 && exp!==0) ? '' : fmtNum(abs);
+  const xStr = exp===0 ? '' : (exp===1 ? varName : varName+sup(exp));
+  return sign+coefStr+xStr;
+}
+function joinTerms(parts){
+  let s='';
+  parts.forEach(t=>{
+    if(!t) return;
+    if(s===''){ s=t; }
+    else if(t.startsWith('-')){ s += ' - ' + t.slice(1); }
+    else { s += ' + ' + t; }
+  });
+  return s || '0';
+}
+function coefTimes(coef, expr){
+  if(coef===0) return '0';
+  const sign = coef<0 ? '-' : '';
+  const abs = Math.abs(coef);
+  if(abs===1) return sign+expr;
+  return sign+fmtNum(abs)+'·'+expr;
+}
+function binBase(a,b){
+  const aStr = a===1 ? 'x' : a+'x';
+  const bStr = b===0 ? '' : (b>0 ? '+'+b : String(b));
+  return '('+aStr+bStr+')';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function uniqueOptions(correct, distractors, count){
+  count = count || 4;
+  const set=[correct];
+  for(const d of distractors){
+    if(set.length>=count) break;
+    if(!set.includes(d)) set.push(d);
+  }
+  let filler=1;
+  while(set.length<count){
+    const cand = correct+' ± '+filler;
+    if(!set.includes(cand)){ set.push(cand); }
+    filler++;
+  }
+  const shuffled = shuffle(set);
+  return { options: shuffled, correct: shuffled.indexOf(correct) };
+}
+
+/* =========================================================================================
+   1. AUDIO ENGINE (Web Audio API — tanpa file eksternal)
+========================================================================================= */
+const SFX = (function(){
+  let ctx=null, enabled=true;
+  function getCtx(){ if(!ctx){ try{ ctx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ ctx=null; } } return ctx; }
+  function tone(freq, dur, type, gainVal, delay){
+    if(!enabled) return;
+    const c = getCtx(); if(!c) return;
+    if(c.state==='suspended'){ c.resume(); }
+    const t0 = c.currentTime + (delay||0);
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.setValueAtTime(freq, t0);
+    gain.gain.setValueAtTime(0, t0);
+    gain.gain.linearRampToValueAtTime(gainVal||0.15, t0+0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0+dur);
+    osc.connect(gain); gain.connect(c.destination);
+    osc.start(t0); osc.stop(t0+dur+0.02);
+  }
+  return {
+    setEnabled(v){ enabled=v; },
+    isEnabled(){ return enabled; },
+    click(){ tone(720,0.06,'square',0.06); },
+    tabSwitch(){ tone(500,0.08,'sine',0.08); tone(660,0.09,'sine',0.07,0.05); },
+    correct(){ tone(523.25,0.11,'sine',0.12); tone(659.25,0.13,'sine',0.11,0.08); tone(783.99,0.18,'sine',0.10,0.16); },
+    wrong(){ tone(220,0.18,'sawtooth',0.09); tone(160,0.22,'sawtooth',0.08,0.08); },
+    success(){ tone(523,0.12,'sine',0.11); tone(659,0.12,'sine',0.11,0.1); tone(784,0.12,'sine',0.11,0.2); tone(1046,0.22,'sine',0.12,0.3); },
+    reset(){ tone(300,0.08,'triangle',0.09); tone(200,0.12,'triangle',0.08,0.07); }
+  };
+})();
+
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+/* =========================================================================================
+   1B. SESI, NOMOR PESERTA (localStorage), &amp; PENGIRIMAN DATA KE GOOGLE SHEETS
+========================================================================================= */
+function safeLocalGet(key, fallback){
+  try{ const v = localStorage.getItem(key); return v===null ? fallback : v; }catch(e){ return fallback; }
+}
+function safeLocalSet(key, value){
+  try{ localStorage.setItem(key, value); return true; }catch(e){ return false; }
+}
+
+function getNextParticipantNumber(){
+  let n = parseInt(safeLocalGet(CONFIG.PARTICIPANT_KEY, '0'), 10);
+  if(isNaN(n)) n = 0;
+  n += 1;
+  safeLocalSet(CONFIG.PARTICIPANT_KEY, String(n));
+  return n;
+}
+
+function getPendingQueue(){
+  try{ return JSON.parse(safeLocalGet(CONFIG.PENDING_KEY, '[]')) || []; }catch(e){ return []; }
+}
+function setPendingQueue(arr){ safeLocalSet(CONFIG.PENDING_KEY, JSON.stringify(arr)); }
+function queuePending(payload){
+  const q = getPendingQueue();
+  q.push(payload);
+  setPendingQueue(q);
+}
+
+/**
+ * Mengirim satu payload data sesi ke Google Apps Script Web App.
+ * Menggunakan mode 'no-cors' karena Web App Apps Script pada umumnya tidak
+ * mengirim header CORS untuk permintaan lintas origin dari klien statis —
+ * akibatnya isi respons tidak dapat dibaca (opaque response). Keberhasilan
+ * di sini diartikan sebagai "permintaan jaringan terkirim tanpa exception",
+ * bukan konfirmasi tertulis dari server.
+ */
+async function sendSessionToSheet(payload){
+  if(!CONFIG.GAS_WEB_APP_URL || CONFIG.GAS_WEB_APP_URL.indexOf('GANTI_')===0){
+    queuePending(payload);
+    return {ok:false, reason:'not-configured'};
+  }
+  try{
+    await fetch(CONFIG.GAS_WEB_APP_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(payload)
+    });
+    return {ok:true};
+  }catch(err){
+    console.error('Gagal mengirim data sesi ke Google Sheets:', err);
+    queuePending(payload);
+    return {ok:false, reason:'network-error', error:String(err && err.message || err)};
+  }
+}
+
+/** Mencoba mengirim ulang seluruh data tertunda yang tersimpan di localStorage. */
+async function attemptFlushPending(silent){
+  const q = getPendingQueue();
+  if(q.length===0){ return {sent:0, remaining:0}; }
+  if(!CONFIG.GAS_WEB_APP_URL || CONFIG.GAS_WEB_APP_URL.indexOf('GANTI_')===0){
+    if(!silent) toast('URL Apps Script belum diatur — data tertunda tetap tersimpan di perangkat');
+    return {sent:0, remaining:q.length};
+  }
+  const stillPending=[];
+  let sentCount=0;
+  for(const item of q){
+    try{
+      await fetch(CONFIG.GAS_WEB_APP_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify(item)
+      });
+      sentCount++;
+    }catch(err){
+      stillPending.push(item);
+    }
+  }
+  setPendingQueue(stillPending);
+  if(!silent) toast(sentCount+' data tertunda berhasil dikirim, '+stillPending.length+' masih tersisa');
+  return {sent:sentCount, remaining:stillPending.length};
+}
+
+function fmtDuration(totalSec){
+  totalSec = Math.max(0, Math.round(totalSec));
+  const h = Math.floor(totalSec/3600);
+  const m = Math.floor((totalSec%3600)/60);
+  const s = totalSec%60;
+  const two = n=> n<10?'0'+n:''+n;
+  return h>0 ? (two(h)+':'+two(m)+':'+two(s)) : (two(m)+':'+two(s));
+}
+
+function getLevelKompetensi(pct){
+  if(pct>=85) return 'Sangat Baik';
+  if(pct>=70) return 'Baik';
+  if(pct>=55) return 'Cukup';
+  return 'Perlu Latihan Lebih Lanjut';
+}
+
+function stripHtml(str){ return String(str).replace(/<[^>]+>/g,'').replace(/\s+/g,' ').trim(); }
+
+/* =========================================================================================
+   2. LOGIN
+========================================================================================= */
+const loginState = { nama:'', kelas:'', bidang:'Matematika', waktu:'' };
+const sessionState = {
+  participantNo:null, nama:'', kelas:'', bidang:'',
+  waktuMulaiMs:null, waktuSelesaiMs:null, durasiDetik:0,
+  skorAkhir:null, levelKompetensi:null, rincianKompetensi:null, logJawaban:[]
+};
+
+function pad(n){ return n<10 ? '0'+n : ''+n; }
+function updateClock(){
+  const d = new Date();
+  const hari = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'][d.getDay()];
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.getMonth()];
+  const str = hari+', '+d.getDate()+' '+bulan+' '+d.getFullYear()+' — '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  const el = document.getElementById('loginDate');
+  if(el) el.value = str;
+  loginState.waktu = str;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+function setFieldError(fieldId, invalid){
+  const f = document.getElementById(fieldId);
+  f.classList.toggle('invalid', !!invalid);
+}
+
+document.getElementById('loginForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  SFX.click();
+  const nama = document.getElementById('loginNama').value.trim();
+  const kelas = document.getElementById('loginKelas').value.trim();
+  const bidang = document.getElementById('loginBidang').value;
+
+  const namaValid = /^[A-Za-z\u00C0-\u024F' .]{3,}$/.test(nama);
+  const kelasValid = kelas.length >= 1;
+  const bidangValid = !!bidang;
+
+  setFieldError('fieldNama', !namaValid);
+  setFieldError('fieldKelas', !kelasValid);
+  setFieldError('fieldBidang', !bidangValid);
+
+  if(!namaValid || !kelasValid || !bidangValid){
+    SFX.wrong();
+    const firstInvalid = document.querySelector('.field.invalid input, .field.invalid select');
+    if(firstInvalid) firstInvalid.focus();
+    return;
+  }
+
+  loginState.nama = nama;
+  loginState.kelas = kelas;
+  loginState.bidang = bidang;
+  SFX.success();
+  enterApp();
+});
+
+['loginNama','loginKelas'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', function(){
+    const fieldId = id==='loginNama' ? 'fieldNama' : 'fieldKelas';
+    setFieldError(fieldId, false);
+  });
+});
+
+function enterApp(){
+  document.getElementById('loginScreen').classList.add('hidden');
+  document.getElementById('appScreen').classList.remove('hidden');
+
+  sessionState.participantNo = getNextParticipantNumber();
+  sessionState.nama = loginState.nama;
+  sessionState.kelas = loginState.kelas;
+  sessionState.bidang = loginState.bidang;
+  sessionState.waktuMulaiMs = Date.now();
+  sessionState.waktuSelesaiMs = null;
+  sessionState.skorAkhir = null;
+
+  const noStr = 'TKA-'+String(sessionState.participantNo).padStart(4,'0');
+  document.getElementById('userAvatar').textContent = loginState.nama.trim().charAt(0).toUpperCase() || '?';
+  document.getElementById('userNameLine').textContent = loginState.nama;
+  document.getElementById('userMetaLine').textContent = 'Kelas ' + loginState.kelas + ' · ' + loginState.bidang + ' · No. ' + noStr;
+  initAppOnce();
+  attemptFlushPending(true);
+}
+
+/* =========================================================================================
+   3. TABS
+========================================================================================= */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', function(){
+    SFX.tabSwitch();
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    this.classList.add('active');
+    const tab = this.dataset.tab;
+    document.querySelectorAll('.content-area > .panel').forEach(p=>p.classList.add('hidden'));
+    document.getElementById('tab-'+tab).classList.remove('hidden');
+  });
+});
+
+/* =========================================================================================
+   4. TOP BAR: SOUND / FULLSCREEN / RESET / LOGOUT
+========================================================================================= */
+document.getElementById('btnSound').addEventListener('click', function(){
+  const now = !SFX.isEnabled();
+  SFX.setEnabled(now);
+  this.textContent = now ? '🔊' : '🔇';
+  if(now) SFX.click();
+  toast(now ? 'Suara diaktifkan' : 'Suara dimatikan');
+});
+
+document.getElementById('btnFullscreen').addEventListener('click', function(){
+  SFX.click();
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>toast('Layar penuh tidak didukung perangkat ini'));
+  }else{
+    document.exitFullscreen();
+  }
+});
+
+function showModal(title, msg, onConfirm, confirmLabel){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = '';
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = '<div class="modal-box"><h3>'+esc(title)+'</h3><p>'+esc(msg)+'</p>'+
+    '<div class="modal-actions"><button class="btn" id="modalCancel">Batal</button>'+
+    '<button class="btn primary" id="modalOk">'+esc(confirmLabel||'Ya, lanjutkan')+'</button></div></div>';
+  root.appendChild(overlay);
+  overlay.querySelector('#modalCancel').addEventListener('click', ()=>{ SFX.click(); root.innerHTML=''; });
+  overlay.querySelector('#modalOk').addEventListener('click', ()=>{ root.innerHTML=''; onConfirm(); });
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) root.innerHTML=''; });
+}
+
+document.getElementById('btnReset').addEventListener('click', function(){
+  showModal('Reset Sesi Latihan', 'Progres Latihan Soal dan pengaturan Simulasi akan diatur ulang, serta soal akan diacak kembali. Lanjutkan?', function(){
+    SFX.reset();
+    buildQuestionBank();
+    renderQuiz();
+    resetSimControls();
+    sessionState.waktuMulaiMs = Date.now();
+    sessionState.waktuSelesaiMs = null;
+    sessionState.skorAkhir = null;
+    toast('Sesi berhasil di-reset');
+  }, 'Reset Sekarang');
+});
+
+document.getElementById('btnLogout').addEventListener('click', function(){
+  showModal('Keluar dari Sesi', 'Anda akan kembali ke halaman login dan seluruh progres sesi ini akan hilang. Lanjutkan?', function(){
+    SFX.reset();
+    document.getElementById('appScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('hidden');
+    document.getElementById('loginForm').reset();
+    document.getElementById('loginBidang').value='Matematika';
+  }, 'Keluar');
+});
+
+/* =========================================================================================
+   5. TEORI — DATA & RENDER
+========================================================================================= */
+const teoriData = [
+{
+  title:'Konsep Limit &amp; Definisi Turunan',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Turunan suatu fungsi f(x) pada titik x menggambarkan laju perubahan sesaat fungsi tersebut, yaitu kemiringan (gradien) garis singgung kurva di titik tersebut. Secara formal, turunan didefinisikan melalui konsep limit.</p>
+  <div class="formula-box">f'(x) = lim<sub>h→0</sub> [f(x+h) − f(x)] / h</div>
+  <p>Nilai limit ini, jika ada, disebut turunan pertama f(x) terhadap x.</p>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    Diketahui f(x) = x². Tentukan f'(x) menggunakan definisi limit.<br><br>
+    f'(x) = lim<sub>h→0</sub> [(x+h)² − x²]/h = lim<sub>h→0</sub> [2xh + h²]/h = lim<sub>h→0</sub> (2x + h) = 2x
+  </div>`
+},
+{
+  title:'Notasi Turunan',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Turunan fungsi y = f(x) dapat dituliskan dengan beberapa notasi yang setara, tergantung konteks penggunaannya.</p>
+  <div class="formula-box">f'(x) &nbsp; atau &nbsp; y' &nbsp; atau &nbsp; dy/dx &nbsp; atau &nbsp; d/dx [f(x)]</div>
+  <p>Seluruh notasi tersebut memiliki makna yang identik: laju perubahan y terhadap x.</p>`
+},
+{
+  title:'Aturan Dasar Turunan (Konstanta &amp; Pangkat)',
+  html:`
+  <h4>Aturan Konstanta</h4>
+  <div class="formula-box">f(x) = c &nbsp;→&nbsp; f'(x) = 0</div>
+  <h4>Aturan Pangkat (Power Rule)</h4>
+  <div class="formula-box">f(x) = a·x<sup>n</sup> &nbsp;→&nbsp; f'(x) = a·n·x<sup>n−1</sup></div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = 4x³ → f'(x) = 4·3·x² = 12x²<br>
+    f(x) = 7 (konstanta) → f'(x) = 0
+  </div>`
+},
+{
+  title:'Aturan Jumlah, Selisih, dan Kelipatan Konstan',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Turunan dari jumlah/selisih beberapa suku dapat dicari dengan menurunkan tiap suku secara terpisah lalu menjumlahkan/mengurangkannya.</p>
+  <div class="formula-box">[f(x) ± g(x)]' = f'(x) ± g'(x)</div>
+  <div class="formula-box">[k·f(x)]' = k·f'(x)</div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = 3x⁴ + 5x² − 2x + 9<br>
+    f'(x) = 3·4·x³ + 5·2·x − 2 + 0 = 12x³ + 10x − 2
+  </div>`
+},
+{
+  title:'Aturan Hasil Kali (Product Rule)',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Digunakan ketika suatu fungsi merupakan perkalian dua fungsi lain, u(x) dan v(x).</p>
+  <div class="formula-box">[u(x)·v(x)]' = u'(x)·v(x) + u(x)·v'(x)</div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = x²·sin(x)<br>
+    u = x² → u' = 2x &nbsp;|&nbsp; v = sin(x) → v' = cos(x)<br>
+    f'(x) = 2x·sin(x) + x²·cos(x)
+  </div>`
+},
+{
+  title:'Aturan Hasil Bagi (Quotient Rule)',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Digunakan ketika fungsi berbentuk pembagian dua fungsi u(x) dan v(x), dengan v(x) ≠ 0.</p>
+  <div class="formula-box">[u(x)/v(x)]' = [u'(x)·v(x) − u(x)·v'(x)] / [v(x)]²</div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = sin(x)/x²<br>
+    u = sin(x) → u' = cos(x) &nbsp;|&nbsp; v = x² → v' = 2x<br>
+    f'(x) = [cos(x)·x² − sin(x)·2x] / x⁴
+  </div>`
+},
+{
+  title:'Aturan Rantai (Chain Rule)',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Digunakan untuk menurunkan fungsi komposisi — fungsi di dalam fungsi. Jika y = f(u) dan u = g(x), maka:</p>
+  <div class="formula-box">dy/dx = dy/du · du/dx &nbsp;=&nbsp; f'(g(x))·g'(x)</div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = (3x + 2)⁴<br>
+    Misal u = 3x+2 (u'=3), sehingga f(x)=u⁴ → f'(x) = 4u³·u' = 4(3x+2)³·3 = 12(3x+2)³
+  </div>`
+},
+{
+  title:'Turunan Fungsi Trigonometri Dasar',
+  html:`
+  <h4>Rumus Dasar</h4>
+  <div class="formula-box">
+  d/dx [sin x] = cos x<br>
+  d/dx [cos x] = −sin x<br>
+  d/dx [tan x] = sec²x<br>
+  d/dx [cot x] = −csc²x<br>
+  d/dx [sec x] = sec x·tan x<br>
+  d/dx [csc x] = −csc x·cot x
+  </div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = 5sin(x) − 3cos(x)<br>
+    f'(x) = 5cos(x) − 3(−sin x) = 5cos(x) + 3sin(x)
+  </div>`
+},
+{
+  title:'Turunan Fungsi Trigonometri Komposisi (Aturan Rantai + Trigonometri)',
+  html:`
+  <h4>Penjelasan</h4>
+  <p>Jika argumen fungsi trigonometri bukan sekadar x, melainkan fungsi lain (misalnya ax+b), gunakan aturan rantai.</p>
+  <div class="formula-box">d/dx [sin(ax+b)] = a·cos(ax+b)</div>
+  <div class="formula-box">d/dx [cos(ax+b)] = −a·sin(ax+b)</div>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = cos(4x − 1)<br>
+    f'(x) = −4·sin(4x − 1)
+  </div>`
+},
+{
+  title:'Penerapan Turunan: Gradien Garis Singgung &amp; Titik Stasioner',
+  html:`
+  <h4>Gradien Garis Singgung</h4>
+  <p>Nilai f'(x₀) menyatakan gradien (kemiringan) garis singgung kurva y=f(x) di titik x = x₀.</p>
+  <div class="formula-box">m = f'(x₀)</div>
+  <h4>Titik Stasioner</h4>
+  <p>Titik stasioner terjadi ketika f'(x) = 0. Titik ini merupakan calon titik maksimum, minimum, atau belok.</p>
+  <div class="example-box">
+    <div class="ex-label">CONTOH &amp; PEMBAHASAN</div>
+    f(x) = x² − 4x, tentukan titik stasioner.<br>
+    f'(x) = 2x − 4 = 0 → x = 2 (titik stasioner di x = 2)
+  </div>`
+}
+];
+
+function renderTeori(){
+  const root = document.getElementById('accordionRoot');
+  root.innerHTML = teoriData.map((item,i)=>`
+    <div class="accordion-item" data-idx="${i}">
+      <button class="accordion-head">
+        <span class="num">${pad(i+1)}</span>
+        <span class="ttl">${item.title}</span>
+        <span class="chev">▾</span>
+      </button>
+      <div class="accordion-body"><div class="accordion-inner">${item.html}</div></div>
+    </div>
+  `).join('');
+  root.querySelectorAll('.accordion-head').forEach(h=>{
+    h.addEventListener('click', function(){
+      SFX.click();
+      this.parentElement.classList.toggle('open');
+    });
+  });
+}
+
+/* =========================================================================================
+   6. PROSEDUR
+========================================================================================= */
+const procSoalSteps = [
+  {t:'Identifikasi bentuk fungsi', d:'Kenali apakah f(x) berbentuk fungsi pangkat, jumlah suku, hasil kali, hasil bagi, fungsi komposisi, atau fungsi trigonometri.'},
+  {t:'Pilih aturan turunan yang sesuai', d:'Tentukan aturan yang tepat: aturan pangkat, jumlah/selisih, hasil kali, hasil bagi, atau aturan rantai — bisa juga kombinasi beberapa aturan.'},
+  {t:'Terapkan rumus turunan secara bertahap', d:'Turunkan tiap bagian fungsi sesuai rumus yang berlaku, jangan lewati langkah agar tidak terjadi kesalahan tanda atau pangkat.'},
+  {t:'Sederhanakan hasil akhir', d:"Gabungkan dan sederhanakan suku-suku sejenis sehingga bentuk f'(x) menjadi paling sederhana."},
+  {t:'Periksa kembali (verifikasi)', d:'Cek ulang tanda, pangkat, dan penerapan aturan rantai — kesalahan kecil sering terjadi pada tahap ini.'},
+  {t:'Terapkan pada konteks soal', d:"Jika soal meminta gradien, titik stasioner, atau laju perubahan, substitusikan nilai x yang diminta ke f'(x)."}
+];
+const procAppSteps = [
+  {t:'Pelajari tab Teori', d:'Mulai dari tab Teori untuk memahami konsep dasar sebelum mencoba simulasi atau latihan soal.'},
+  {t:'Eksplorasi tab Simulasi', d:"Ubah parameter fungsi (koefisien, pangkat, jenis trigonometri) dan amati perubahan grafik f(x) dan f'(x) secara langsung."},
+  {t:'Kerjakan tab Latihan TKA', d:'Jawab 50 soal acak melalui panel navigasi soal di sisi kanan. Jawaban tersimpan otomatis selama sesi berlangsung.'},
+  {t:'Gunakan tombol Reset bila perlu', d:'Tombol ↺ pada bilah atas akan mengacak ulang soal dan mengembalikan parameter simulasi ke kondisi awal.'},
+  {t:'Lihat hasil akhir', d:'Setelah menekan "Selesai &amp; Lihat Hasil" pada tab Latihan, skor dan rincian per kompetensi akan ditampilkan.'}
+];
+function renderProsedur(){
+  document.getElementById('procSoal').innerHTML = procSoalSteps.map((s,i)=>`
+    <div class="proc-step"><div class="pn">${pad(i+1)}</div><div class="pc"><h4>${s.t}</h4><p>${s.d}</p></div></div>
+  `).join('');
+  document.getElementById('procApp').innerHTML = procAppSteps.map((s,i)=>`
+    <div class="proc-step"><div class="pn">${pad(i+1)}</div><div class="pc"><h4>${s.t}</h4><p>${s.d}</p></div></div>
+  `).join('');
+}
+
+/* =========================================================================================
+   7. SIMULASI
+========================================================================================= */
+const simState = { type:'pangkat', a:1, n:2, trigFn:'sin', ta:1, tb:1, x0:1 };
+
+function evalF(x){
+  if(simState.type==='pangkat'){ return simState.a * Math.pow(x, simState.n); }
+  const arg = simState.tb * x;
+  if(simState.trigFn==='sin') return simState.ta*Math.sin(arg);
+  if(simState.trigFn==='cos') return simState.ta*Math.cos(arg);
+  return simState.ta*Math.tan(arg);
+}
+function evalFPrime(x){
+  if(simState.type==='pangkat'){
+    if(simState.n===0) return 0;
+    return simState.a*simState.n*Math.pow(x, simState.n-1);
+  }
+  const arg = simState.tb*x;
+  if(simState.trigFn==='sin') return simState.ta*simState.tb*Math.cos(arg);
+  if(simState.trigFn==='cos') return -simState.ta*simState.tb*Math.sin(arg);
+  const sec = 1/Math.cos(arg);
+  return simState.ta*simState.tb*sec*sec;
+}
+function fxFormula(){
+  if(simState.type==='pangkat') return 'f(x) = ' + (term(simState.a, simState.n) || '0');
+  const arg = simState.tb===1 ? 'x' : simState.tb+'x';
+  return 'f(x) = ' + coefTimes(simState.ta, simState.trigFn+'('+arg+')');
+}
+function fpxFormula(){
+  if(simState.type==='pangkat'){
+    const c = simState.a*simState.n, e = simState.n-1;
+    return "f'(x) = " + (term(c,e) || '0');
+  }
+  const arg = simState.tb===1 ? 'x' : simState.tb+'x';
+  if(simState.trigFn==='sin') return "f'(x) = " + coefTimes(simState.ta*simState.tb, 'cos('+arg+')');
+  if(simState.trigFn==='cos') return "f'(x) = " + coefTimes(-simState.ta*simState.tb, 'sin('+arg+')');
+  return "f'(x) = " + coefTimes(simState.ta*simState.tb, 'sec²('+arg+')');
+}
+function simSteps(){
+  if(simState.type==='pangkat'){
+    return [
+      `Fungsi: <b>${fxFormula()}</b>`,
+      `Terapkan aturan pangkat: kalikan koefisien dengan pangkat, lalu kurangi pangkat dengan 1.`,
+      `f'(x) = ${simState.a}·${simState.n}·x<sup>${simState.n-1}</sup> = ${term(simState.a*simState.n, simState.n-1)||'0'}`,
+      `Hasil akhir: <b>${fpxFormula()}</b>`
+    ];
+  }
+  const arg = simState.tb===1?'x':simState.tb+'x';
+  const map = {sin:'cos', cos:'−sin', tan:'sec²'};
+  return [
+    `Fungsi: <b>${fxFormula()}</b>`,
+    `Turunan dasar: d/dx[${simState.trigFn}(u)] menghasilkan ${map[simState.trigFn]}(u), dikalikan turunan u = ${arg} yaitu u' = ${simState.tb}.`,
+    `Kalikan koefisien a = ${simState.ta} dengan u' = ${simState.tb}.`,
+    `Hasil akhir: <b>${fpxFormula()}</b>`
+  ];
+}
+
+function drawSim(){
+  const canvas = document.getElementById('simCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#060B14';
+  ctx.fillRect(0,0,W,H);
+
+  const xMin=-6, xMax=6, steps=240;
+  const fPts=[], fpPts=[];
+  for(let i=0;i<=steps;i++){
+    const x = xMin + (xMax-xMin)*i/steps;
+    fPts.push({x, y: evalF(x)});
+    fpPts.push({x, y: evalFPrime(x)});
+  }
+  let yMin=Infinity, yMax=-Infinity;
+  [...fPts,...fpPts].forEach(p=>{ if(isFinite(p.y)){ yMin=Math.min(yMin,p.y); yMax=Math.max(yMax,p.y); } });
+  if(!isFinite(yMin)||!isFinite(yMax)||yMin===yMax){ yMin=-5; yMax=5; }
+  const pad = (yMax-yMin)*0.15 || 1;
+  yMin -= pad; yMax += pad;
+
+  const marginL=54, marginR=20, marginT=20, marginB=36;
+  const plotW = W-marginL-marginR, plotH = H-marginT-marginB;
+  function px(x){ return marginL + (x-xMin)/(xMax-xMin)*plotW; }
+  function py(y){ return marginT + (yMax-y)/(yMax-yMin)*plotH; }
+
+  // grid
+  ctx.strokeStyle = 'rgba(79,209,197,0.08)';
+  ctx.lineWidth=1;
+  for(let gx=Math.ceil(xMin);gx<=xMax;gx++){
+    ctx.beginPath(); ctx.moveTo(px(gx),marginT); ctx.lineTo(px(gx),H-marginB); ctx.stroke();
+  }
+  const gyStep = Math.pow(10, Math.floor(Math.log10((yMax-yMin)/6||1)));
+  for(let gy=Math.ceil(yMin/gyStep)*gyStep; gy<=yMax; gy+=gyStep){
+    ctx.beginPath(); ctx.moveTo(marginL,py(gy)); ctx.lineTo(W-marginR,py(gy)); ctx.stroke();
+  }
+  // axes
+  ctx.strokeStyle = 'rgba(233,237,247,0.35)'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(marginL,py(0)); ctx.lineTo(W-marginR,py(0)); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(px(0),marginT); ctx.lineTo(px(0),H-marginB); ctx.stroke();
+  ctx.fillStyle='rgba(139,150,179,0.9)'; ctx.font='11px JetBrains Mono, monospace';
+  for(let gx=Math.ceil(xMin);gx<=xMax;gx++){ if(gx===0) continue; ctx.fillText(String(gx), px(gx)-3, py(0)+14); }
+
+  function drawCurve(pts, color){
+    ctx.strokeStyle=color; ctx.lineWidth=2.4; ctx.beginPath();
+    let started=false;
+    pts.forEach(p=>{
+      if(!isFinite(p.y) || p.y<yMin-pad*3 || p.y>yMax+pad*3){ started=false; return; }
+      const X=px(p.x), Y=py(p.y);
+      if(!started){ ctx.moveTo(X,Y); started=true; } else { ctx.lineTo(X,Y); }
+    });
+    ctx.stroke();
+  }
+  drawCurve(fPts, '#4FD1C5');
+  drawCurve(fpPts, '#F6AD55');
+
+  // tangent line at x0
+  const x0 = simState.x0;
+  const y0 = evalF(x0);
+  const slope = evalFPrime(x0);
+  if(isFinite(y0) && isFinite(slope)){
+    const x1t = x0-2.2, x2t = x0+2.2;
+    const y1t = y0+slope*(x1t-x0), y2t = y0+slope*(x2t-x0);
+    ctx.strokeStyle='rgba(255,255,255,0.65)'; ctx.setLineDash([6,5]); ctx.lineWidth=1.6;
+    ctx.beginPath(); ctx.moveTo(px(x1t),py(y1t)); ctx.lineTo(px(x2t),py(y2t)); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#fff';
+    ctx.beginPath(); ctx.arc(px(x0),py(y0),5,0,Math.PI*2); ctx.fill();
+  }
+
+  document.getElementById('roFx').textContent = fxFormula().replace('f(x) = ','');
+  document.getElementById('roFpx').textContent = fpxFormula().replace("f'(x) = ",'');
+  document.getElementById('roFx0').textContent = isFinite(y0) ? fmtNum(y0) : '—';
+  document.getElementById('roGrad').textContent = isFinite(slope) ? fmtNum(slope) : '—';
+  document.getElementById('simStepsBody').innerHTML = simSteps().map(s=>`<div class="sim-step-line">${s}</div>`).join('');
+}
+
+function bindSimControls(){
+  document.querySelectorAll('#simTypeSeg button').forEach(b=>{
+    b.addEventListener('click', function(){
+      SFX.click();
+      document.querySelectorAll('#simTypeSeg button').forEach(x=>x.classList.remove('active'));
+      this.classList.add('active');
+      simState.type = this.dataset.type;
+      document.getElementById('simPangkatCtrl').classList.toggle('hidden', simState.type!=='pangkat');
+      document.getElementById('simTrigCtrl').classList.toggle('hidden', simState.type!=='trig');
+      drawSim();
+    });
+  });
+  function bindRange(id,valId,key,isFloat){
+    const el = document.getElementById(id);
+    el.addEventListener('input', function(){
+      const v = isFloat? parseFloat(this.value) : parseInt(this.value,10);
+      simState[key]=v;
+      document.getElementById(valId).textContent = isFloat? v.toFixed(1) : v;
+      drawSim();
+    });
+  }
+  bindRange('simA','simAVal','a',false);
+  bindRange('simN','simNVal','n',false);
+  bindRange('simTA','simTAVal','ta',false);
+  bindRange('simTB','simTBVal','tb',false);
+  bindRange('simX0','simX0Val','x0',true);
+  document.getElementById('simTrigFn').addEventListener('change', function(){
+    SFX.click(); simState.trigFn=this.value; drawSim();
+  });
+}
+function resetSimControls(){
+  simState.type='pangkat'; simState.a=1; simState.n=2; simState.trigFn='sin'; simState.ta=1; simState.tb=1; simState.x0=1;
+  document.querySelectorAll('#simTypeSeg button').forEach(x=>x.classList.remove('active'));
+  document.querySelector('#simTypeSeg button[data-type="pangkat"]').classList.add('active');
+  document.getElementById('simPangkatCtrl').classList.remove('hidden');
+  document.getElementById('simTrigCtrl').classList.add('hidden');
+  document.getElementById('simA').value=1; document.getElementById('simAVal').textContent='1';
+  document.getElementById('simN').value=2; document.getElementById('simNVal').textContent='2';
+  document.getElementById('simTrigFn').value='sin';
+  document.getElementById('simTA').value=1; document.getElementById('simTAVal').textContent='1';
+  document.getElementById('simTB').value=1; document.getElementById('simTBVal').textContent='1';
+  document.getElementById('simX0').value=1; document.getElementById('simX0Val').textContent='1.0';
+  drawSim();
+}
+
+/* =========================================================================================
+   8. BANK SOAL — GENERATOR (50 SOAL: PGS, PGK, PGKK)
+========================================================================================= */
+const KOMPETENSI = {
+  PENGETAHUAN:'Pengetahuan Matematika',
+  REPRESENTASI:'Representasi Matematis',
+  PENALARAN:'Penalaran dan Pembuktian Matematis',
+  PEMECAHAN:'Pemecahan Masalah Matematis',
+  KONEKSI:'Koneksi Matematis'
+};
+
+/* ---- PGS generators (11 templates) ---- */
+function genPowerRule(){
+  const a=randIntNZ(2,9), n=randInt(2,6);
+  const correct = term(a*n, n-1) || '0';
+  const d1 = term(a, n-1);
+  const d2 = term(a*n, n);
+  const d3 = term(-a*n, n-1);
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Aturan Pangkat',
+    stem:`Turunan pertama dari f(x) = ${term(a,n)} adalah ...`, options, correct:ci};
+}
+function genSumRule(){
+  const a=randIntNZ(2,7), n=randInt(2,5), b=randIntNZ(1,6), m=randInt(1,3), c=randInt(1,9);
+  const fStr = joinTerms([term(a,n), term(b,m), term(c,0)]);
+  const correct = joinTerms([term(a*n,n-1), term(b*m,m-1)]);
+  const d1 = joinTerms([term(a*n,n-1), term(b*m,m-1), term(c,0)]);
+  const d2 = joinTerms([term(a,n-1), term(b,m-1)]);
+  const d3 = joinTerms([term(a*n,n), term(b*m,m)]);
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Jumlah &amp; Selisih',
+    stem:`Diketahui f(x) = ${fStr}. Turunan f'(x) adalah ...`, options, correct:ci};
+}
+function genProductRule(){
+  const n=randInt(2,4), trig=pick(['sin','cos']);
+  const u = 'x'+sup(n), uPrime = term(n,n-1);
+  let correct, d1, d2, d3;
+  if(trig==='sin'){
+    correct = `${uPrime}·sin(x) + ${u}·cos(x)`;
+    d1 = `${uPrime}·cos(x)`;
+    d2 = `${uPrime}·sin(x) - ${u}·cos(x)`;
+    d3 = `${u}·cos(x)`;
+  }else{
+    correct = `${uPrime}·cos(x) - ${u}·sin(x)`;
+    d1 = `${uPrime}·(-sin(x))`;
+    d2 = `${uPrime}·cos(x) + ${u}·sin(x)`;
+    d3 = `-${u}·sin(x)`;
+  }
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.REPRESENTASI, topik:'Aturan Hasil Kali',
+    stem:`Turunan dari f(x) = x${sup(n)}·${trig}(x) adalah ...`, options, correct:ci};
+}
+function genQuotientRule(){
+  const n=randInt(2,3), trig=pick(['sin','cos']);
+  const uExpr = trig+'(x)';
+  const uPrimeExpr = trig==='sin' ? 'cos(x)' : '-sin(x)';
+  const vPrime = term(n,n-1);
+  const denom = 'x'+sup(2*n);
+  const correct = `[${uPrimeExpr}·x${sup(n)} - ${uExpr}·${vPrime}] / ${denom}`;
+  const d1 = `[${uExpr}·${vPrime} - ${uPrimeExpr}·x${sup(n)}] / ${denom}`;
+  const d2 = `[${uPrimeExpr}·x${sup(n)} - ${uExpr}·${vPrime}] / x${sup(n)}`;
+  const d3 = `${uPrimeExpr} / ${vPrime}`;
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.REPRESENTASI, topik:'Aturan Hasil Bagi',
+    stem:`Turunan dari f(x) = ${trig}(x) / x${sup(n)} adalah ...`, options, correct:ci};
+}
+function genChainRulePoly(){
+  let a=randIntNZ(1,4), b=randInt(-5,5);
+  if(a===1 && b===0) b = pick([-3,-2,-1,1,2,3]);
+  const n=randInt(2,5);
+  const base = binBase(a,b);
+  const correct = `${n*a}${base}${sup(n-1)}`;
+  const d1 = `${n}${base}${sup(n-1)}`;
+  const d2 = `${n*a}${base}${sup(n)}`;
+  const d3 = `${a}${base}${sup(n-1)}`;
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENALARAN, topik:'Aturan Rantai (Aljabar)',
+    stem:`Turunan dari f(x) = ${base}${sup(n)} adalah ...`, options, correct:ci};
+}
+function genChainRuleTrig(){
+  const a=randIntNZ(1,4), b=randInt(-5,5), trig=pick(['sin','cos']);
+  const base = binBase(a,b);
+  let correct,d1,d2,d3;
+  if(trig==='sin'){
+    correct = coefTimes(a,'cos'+base);
+    d1 = 'cos'+base;
+    d2 = coefTimes(a,'sin'+base);
+    d3 = coefTimes(-a,'cos'+base);
+  }else{
+    correct = coefTimes(-a,'sin'+base);
+    d1 = '-sin'+base;
+    d2 = coefTimes(a,'cos'+base);
+    d3 = coefTimes(a,'sin'+base);
+  }
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENALARAN, topik:'Aturan Rantai (Trigonometri)',
+    stem:`Turunan dari f(x) = ${trig}${base} adalah ...`, options, correct:ci};
+}
+function genTrigBasic(){
+  const a=randIntNZ(2,6), b=randInt(1,4), trig=pick(['sin','cos','tan']);
+  const arg = b===1?'x':b+'x';
+  const map = {sin:{name:'cos',sign:1}, cos:{name:'sin',sign:-1}, tan:{name:'sec²',sign:1}};
+  const d = map[trig];
+  const correct = coefTimes(a*b*d.sign, d.name+'('+arg+')');
+  const d1 = coefTimes(-a*b*d.sign, d.name+'('+arg+')');
+  const d2 = coefTimes(a*d.sign, d.name+'('+arg+')');
+  const d3 = coefTimes(a*b, trig+'('+arg+')');
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Trigonometri Dasar',
+    stem:`Turunan dari f(x) = ${coefTimes(a,trig+'('+arg+')')} adalah ...`, options, correct:ci};
+}
+function genTangentGradient(){
+  const a=randIntNZ(1,5), b=randInt(-5,5), c=randInt(-5,5), x0=randInt(-3,3);
+  const grad = 2*a*x0+b;
+  const fx0 = a*x0*x0+b*x0+c;
+  const correct = fmtNum(grad);
+  const d1 = fmtNum(fx0);
+  const d2 = fmtNum(-grad);
+  const d3 = fmtNum(2*a*x0);
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  const fStr = joinTerms([term(a,2), term(b,1), term(c,0)]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PEMECAHAN, topik:'Gradien Garis Singgung',
+    stem:`Gradien garis singgung kurva f(x) = ${fStr} di titik x = ${x0} adalah ...`, options, correct:ci};
+}
+function genStationaryPoint(){
+  const half = randInt(1,5);
+  const a = 2*half;
+  const b = randInt(-6,6);
+  const x0 = half;
+  const correct = fmtNum(x0);
+  const d1 = fmtNum(a);
+  const d2 = fmtNum(-x0);
+  const d3 = fmtNum(x0+1);
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  const fStr = joinTerms([term(1,2), term(-a,1), term(b,0)]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PEMECAHAN, topik:'Titik Stasioner',
+    stem:`Nilai x yang membuat fungsi f(x) = ${fStr} mencapai titik stasioner (f'(x) = 0) adalah ...`, options, correct:ci};
+}
+function genRealWorldRate(){
+  const a=randIntNZ(1,5), b=randInt(0,10), t0=randInt(1,5);
+  const v0 = 2*a*t0+b;
+  const s0 = a*t0*t0+b*t0;
+  const correct = fmtNum(v0)+' m/s';
+  const d1 = fmtNum(s0)+' m/s';
+  const d2 = fmtNum(a*t0+b)+' m/s';
+  const d3 = fmtNum(2*a*t0)+' m/s';
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  const sStr = joinTerms([term(a,2,'t'), term(b,1,'t')]);
+  return {type:'PGS', kompetensi:KOMPETENSI.KONEKSI, topik:'Aplikasi: Kecepatan',
+    stem:`Posisi sebuah benda dinyatakan oleh s(t) = ${sStr} (meter, t dalam detik). Kecepatan benda pada saat t = ${t0} detik adalah ...`, options, correct:ci};
+}
+function genMixedTrigPoly(){
+  const n=randInt(2,4), a=randIntNZ(2,6), trig=pick(['sin','cos']);
+  const powTerm = term(n,n-1);
+  let correct,d1,d2,d3;
+  if(trig==='sin'){
+    correct = `${powTerm} + ${coefTimes(a,'cos(x)')}`;
+    d1 = `${powTerm}`;
+    d2 = `${powTerm} - ${coefTimes(a,'cos(x)')}`;
+    d3 = `${term(n,n)} + ${coefTimes(a,'cos(x)')}`;
+  }else{
+    correct = `${powTerm} - ${coefTimes(a,'sin(x)')}`;
+    d1 = `${powTerm}`;
+    d2 = `${powTerm} + ${coefTimes(a,'sin(x)')}`;
+    d3 = `${term(n,n)} - ${coefTimes(a,'sin(x)')}`;
+  }
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENALARAN, topik:'Kombinasi Aljabar &amp; Trigonometri',
+    stem:`Turunan dari f(x) = x${sup(n)} ${trig==='sin'?'+':'+'} ${coefTimes(a,trig+'(x)')} adalah ...`, options, correct:ci};
+}
+const pgsGenerators=[genPowerRule,genSumRule,genProductRule,genQuotientRule,genChainRulePoly,genChainRuleTrig,genTrigBasic,genTangentGradient,genStationaryPoint,genRealWorldRate,genMixedTrigPoly];
+
+/* ---- PGK generators (multi-select, 5 templates) ---- */
+function genPGK_A(){
+  const a=randIntNZ(2,7), n=randInt(2,5);
+  const correctDeriv = term(a*n,n-1);
+  const statements=[
+    {text:`Turunan dari f(x) = ${term(a,n)} adalah f'(x) = ${correctDeriv}`, correct:true},
+    {text:`Turunan dari f(x) = ${term(a,n)} adalah f'(x) = ${term(a*n,n)}`, correct:false},
+    {text:`Pangkat pada f'(x) selalu satu tingkat lebih rendah dibandingkan pangkat f(x), untuk fungsi pangkat sederhana`, correct:true},
+    {text:`Turunan dari fungsi konstanta selalu bernilai nol`, correct:true},
+    {text:`Turunan dari f(x) = x selalu bernilai x itu sendiri`, correct:false}
+  ];
+  return {type:'PGK', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Aturan Pangkat',
+    stem:'Perhatikan pernyataan berikut mengenai aturan pangkat pada turunan. Pilih semua pernyataan yang BENAR.', options:shuffle(statements)};
+}
+function genPGK_B(){
+  const a=randIntNZ(2,6), b=randInt(1,3);
+  const arg = b===1?'x':b+'x';
+  const statements=[
+    {text:'Turunan dari sin(x) adalah cos(x)', correct:true},
+    {text:'Turunan dari cos(x) adalah cos(x)', correct:false},
+    {text:'Turunan dari tan(x) adalah sec²(x)', correct:true},
+    {text:`Turunan dari f(x) = ${coefTimes(a,'sin('+arg+')')} adalah f'(x) = ${coefTimes(a*b,'cos('+arg+')')}`, correct:true},
+    {text:`Turunan dari f(x) = ${coefTimes(a,'cos('+arg+')')} adalah f'(x) = ${coefTimes(a*b,'sin('+arg+')')}`, correct:false}
+  ];
+  return {type:'PGK', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Trigonometri Dasar',
+    stem:'Perhatikan pernyataan berikut mengenai turunan fungsi trigonometri. Pilih semua pernyataan yang BENAR.', options:shuffle(statements)};
+}
+function genPGK_C(){
+  const n1=randInt(2,4), n2=randInt(2,4), c=randInt(1,9);
+  const statements=[
+    {text:`Untuk menurunkan f(x) = (2x+3)${sup(n1)}, kita menggunakan Aturan Rantai`, correct:true},
+    {text:`Untuk menurunkan f(x) = x${sup(n2)}·sin(x), kita menggunakan Aturan Rantai`, correct:false},
+    {text:`Untuk menurunkan f(x) = sin(x)/x${sup(n1)}, kita menggunakan Aturan Hasil Bagi`, correct:true},
+    {text:'Aturan rantai digunakan ketika terdapat fungsi komposisi (fungsi di dalam fungsi)', correct:true},
+    {text:`Untuk menurunkan f(x) = (x+${c})${sup(n2)}, kita menggunakan Aturan Hasil Kali`, correct:false}
+  ];
+  return {type:'PGK', kompetensi:KOMPETENSI.KONEKSI, topik:'Identifikasi Aturan Turunan',
+    stem:'Perhatikan pernyataan berikut mengenai pemilihan aturan turunan yang tepat. Pilih semua pernyataan yang BENAR.', options:shuffle(statements)};
+}
+function genPGK_D(){
+  const a=randIntNZ(1,4), b=randInt(-6,6);
+  const x1=randInt(-4,-1), x2=randInt(1,4);
+  const g1 = 2*a*x1+b, g2 = 2*a*x2+b;
+  const fStr = joinTerms([term(a,2), term(b,1)]);
+  const statements=[
+    {text:`Pada x = ${x1}, fungsi f(x) = ${fStr} sedang naik`, correct: g1>0},
+    {text:`Pada x = ${x2}, fungsi f(x) = ${fStr} sedang turun`, correct: g2<0},
+    {text:"Jika f'(x) > 0 pada suatu interval, maka fungsi f(x) naik pada interval tersebut", correct:true},
+    {text:"Jika f'(x) = 0, maka titik tersebut merupakan calon titik stasioner (ekstrem)", correct:true},
+    {text:"Jika f'(x) < 0, maka fungsi f(x) sedang naik pada interval tersebut", correct:false}
+  ];
+  return {type:'PGK', kompetensi:KOMPETENSI.REPRESENTASI, topik:'Kemonotonan Fungsi',
+    stem:'Perhatikan pernyataan berikut mengenai kemonotonan (naik/turun) suatu fungsi. Pilih semua pernyataan yang BENAR.', options:shuffle(statements)};
+}
+function genPGK_E(){
+  const a=randIntNZ(1,5), b=randInt(0,8), t0=randInt(1,5);
+  const v0=2*a*t0+b, s0=a*t0*t0+b*t0;
+  const sStr = joinTerms([term(a,2,'t'), term(b,1,'t')]);
+  const statements=[
+    {text:`Kecepatan benda pada saat t = ${t0} detik adalah ${fmtNum(v0)} m/s`, correct:true},
+    {text:`Kecepatan benda pada saat t = ${t0} detik sama dengan posisi benda saat itu, yaitu ${fmtNum(s0)} m`, correct:false},
+    {text:'Kecepatan merupakan turunan pertama dari fungsi posisi terhadap waktu', correct:true},
+    {text:'Percepatan merupakan turunan pertama dari fungsi kecepatan terhadap waktu', correct:true},
+    {text:'Posisi benda dapat diperoleh dengan menurunkan fungsi kecepatan terhadap waktu', correct:false}
+  ];
+  return {type:'PGK', kompetensi:KOMPETENSI.PEMECAHAN, topik:'Aplikasi: Gerak Lurus',
+    stem:`Sebuah benda bergerak dengan posisi s(t) = ${sStr} (meter, t dalam detik). Pilih semua pernyataan yang BENAR.`, options:shuffle(statements)};
+}
+const pgkGenerators=[genPGK_A,genPGK_B,genPGK_C,genPGK_D,genPGK_E];
+
+/* ---- PGKK generators (kategori/tabel, 5 templates) ---- */
+function genPGKK_I(){
+  const cats=['Benar','Salah'];
+  const a1=randIntNZ(2,6), n1=randInt(2,4);
+  const a2=randIntNZ(2,6), n2=randInt(2,4);
+  const b1=randIntNZ(1,4), b2=randIntNZ(1,4);
+  const trig1=pick(['sin','cos']), trig2=pick(['sin','cos']);
+  const map={sin:{name:'cos',sign:1},cos:{name:'sin',sign:-1}};
+  const rows=[
+    {text:`f(x) = ${term(a1,n1)} → f'(x) = ${term(a1*n1,n1-1)}`, correctIdx:0},
+    {text:`f(x) = ${term(a2,n2)} → f'(x) = ${term(a2,n2-1)}`, correctIdx:1},
+    {text:`f(x) = ${coefTimes(1,trig1+'('+(b1===1?'x':b1+'x')+')')} → f'(x) = ${coefTimes(b1*map[trig1].sign, map[trig1].name+'('+(b1===1?'x':b1+'x')+')')}`, correctIdx:0},
+    {text:`f(x) = ${coefTimes(1,trig2+'('+(b2===1?'x':b2+'x')+')')} → f'(x) = ${coefTimes(b2, trig2+'('+(b2===1?'x':b2+'x')+')')}`, correctIdx:1}
+  ];
+  return {type:'PGKK', kompetensi:KOMPETENSI.PENGETAHUAN, topik:'Verifikasi Rumus Turunan',
+    stem:'Untuk setiap pernyataan turunan berikut, tentukan apakah BENAR atau SALAH.', categories:cats, rows:shuffle(rows)};
+}
+function genPGKK_II(){
+  const cats=['Fungsi Naik','Fungsi Turun','Titik Stasioner'];
+  const a=randIntNZ(1,4), half=randInt(1,4);
+  const b=-2*a*half;
+  const xs=half, otherXs=shuffle([half-3,half-2,half+2,half+3].filter(v=>v!==half)).slice(0,3);
+  const fStr = joinTerms([term(a,2), term(b,1)]);
+  const allX = shuffle([xs, ...otherXs]);
+  const rows = allX.map(x=>{
+    const g = 2*a*x+b;
+    const idx = g===0?2:(g>0?0:1);
+    return {text:`Pada titik x = ${x}`, correctIdx:idx};
+  });
+  return {type:'PGKK', kompetensi:KOMPETENSI.PENALARAN, topik:'Kemonotonan Fungsi',
+    stem:`Diketahui fungsi f(x) = ${fStr}. Klasifikasikan perilaku fungsi pada setiap titik berikut.`, categories:cats, rows};
+}
+function genPGKK_III(){
+  const cats=['Aturan Pangkat','Aturan Hasil Kali','Aturan Hasil Bagi','Aturan Rantai'];
+  const a=randIntNZ(2,7), n=randInt(2,5);
+  const n2=randInt(2,4);
+  const n3=randInt(2,3);
+  const a4=randIntNZ(1,4); let b4=randInt(-5,5); const n4=randInt(2,4);
+  if(a4===1 && b4===0) b4 = pick([-3,-2,-1,1,2,3]);
+  const rows=[
+    {text:`f(x) = ${term(a,n)}`, correctIdx:0},
+    {text:`f(x) = x${sup(n2)}·sin(x)`, correctIdx:1},
+    {text:`f(x) = cos(x) / x${sup(n3)}`, correctIdx:2},
+    {text:`f(x) = ${binBase(a4,b4)}${sup(n4)}`, correctIdx:3}
+  ];
+  return {type:'PGKK', kompetensi:KOMPETENSI.KONEKSI, topik:'Identifikasi Aturan Turunan',
+    stem:'Cocokkan setiap fungsi berikut dengan aturan turunan yang paling sesuai untuk menurunkannya.', categories:cats, rows:shuffle(rows)};
+}
+function genPGKK_IV(){
+  const cats=['Positif','Negatif','Nol'];
+  const a=randIntNZ(1,4), half=randInt(1,4);
+  const b=-2*a*half;
+  const others=shuffle([half-3,half-2,half+2,half+3].filter(v=>v!==half)).slice(0,3);
+  const allX=shuffle([half,...others]);
+  const fStr = joinTerms([term(a,2), term(b,1)]);
+  const rows = allX.map(x=>{
+    const g=2*a*x+b;
+    const idx = g===0?2:(g>0?0:1);
+    return {text:`Gradien garis singgung di x = ${x}`, correctIdx:idx};
+  });
+  return {type:'PGKK', kompetensi:KOMPETENSI.PEMECAHAN, topik:'Gradien Garis Singgung',
+    stem:`Diketahui kurva f(x) = ${fStr}. Klasifikasikan tanda gradien garis singgung pada setiap titik berikut.`, categories:cats, rows};
+}
+function genPGKK_V(){
+  const cats=['Benar','Salah'];
+  const a=randIntNZ(1,5), b=randInt(0,8);
+  const t1=randInt(1,3), t2=randInt(1,3);
+  const sStr = joinTerms([term(a,2,'t'), term(b,1,'t')]);
+  const v1=2*a*t1+b, v2=2*a*t2+b;
+  const claimWrong2 = v2+randIntNZ(1,4);
+  const rows=[
+    {text:`Kecepatan pada t = ${t1} detik adalah ${fmtNum(v1)} m/s`, correctIdx:0},
+    {text:`Kecepatan pada t = ${t2} detik adalah ${fmtNum(claimWrong2)} m/s`, correctIdx:1},
+    {text:'Kecepatan sesaat diperoleh dari turunan pertama fungsi posisi', correctIdx:0},
+    {text:'Semakin besar t, kecepatan pasti selalu semakin kecil', correctIdx:1}
+  ];
+  return {type:'PGKK', kompetensi:KOMPETENSI.REPRESENTASI, topik:'Aplikasi: Gerak Lurus',
+    stem:`Sebuah benda bergerak dengan posisi s(t) = ${sStr} (meter). Klasifikasikan setiap pernyataan berikut sebagai BENAR atau SALAH.`, categories:cats, rows:shuffle(rows)};
+}
+const pgkkGenerators=[genPGKK_I,genPGKK_II,genPGKK_III,genPGKK_IV,genPGKK_V];
+
+function generateSet(generators, count){
+  const arr=[]; let i=0;
+  while(arr.length<count){ arr.push(generators[i%generators.length]()); i++; }
+  return arr;
+}
+
+let QUESTION_BANK = [];
+function buildQuestionBank(){
+  const pgs = generateSet(pgsGenerators, 25);
+  const pgk = generateSet(pgkGenerators, 15);
+  const pgkk = generateSet(pgkkGenerators, 10);
+  QUESTION_BANK = shuffle([...pgs, ...pgk, ...pgkk]).map((q,i)=>Object.assign({id:i, answer:null},q));
+}
+
+/* =========================================================================================
+   9. RENDER LATIHAN SOAL
+========================================================================================= */
+let currentQ = 0;
+
+function questionAnswered(q){
+  if(q.type==='PGS') return q.answer!==null && q.answer!==undefined;
+  if(q.type==='PGK') return Array.isArray(q.answer) && q.answer.length>0;
+  if(q.type==='PGKK') return Array.isArray(q.answer) && q.answer.some(v=>v!==null && v!==undefined);
+  return false;
+}
+
+function renderQuiz(){
+  currentQ = 0;
+  const area = document.getElementById('quizArea');
+  area.innerHTML = `
+    <div class="quiz-top">
+      <div class="quiz-stat">Soal <b id="qCounter">1/50</b></div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="qProgFill"></div></div>
+      <div class="quiz-stat">Terjawab <b id="qAnsweredCount">0</b>/50</div>
+    </div>
+    <div class="quiz-layout">
+      <div>
+        <div class="question-card" id="questionCard"></div>
+        <div class="quiz-actions">
+          <button class="btn" id="btnPrevQ">← Sebelumnya</button>
+          <button class="btn primary" id="btnNextQ">Selanjutnya →</button>
+        </div>
+        <div class="quiz-finish-row">
+          <button class="btn primary" id="btnFinishQuiz">Selesai &amp; Lihat Hasil</button>
+        </div>
+        <div id="resultArea" style="margin-top:18px;"></div>
+      </div>
+      <div class="quiz-nav-grid" id="quizNavGrid"></div>
+    </div>
+  `;
+  document.getElementById('btnPrevQ').addEventListener('click', ()=>{ if(currentQ>0){ currentQ--; SFX.click(); renderQuestion(); } });
+  document.getElementById('btnNextQ').addEventListener('click', ()=>{ if(currentQ<QUESTION_BANK.length-1){ currentQ++; SFX.click(); renderQuestion(); } });
+  document.getElementById('btnFinishQuiz').addEventListener('click', finishQuiz);
+  renderNavGrid();
+  renderQuestion();
+}
+
+function renderNavGrid(){
+  const grid = document.getElementById('quizNavGrid');
+  grid.innerHTML = QUESTION_BANK.map((q,i)=>`<button class="qn-btn ${questionAnswered(q)?'answered':''} ${i===currentQ?'current':''}" data-i="${i}">${i+1}</button>`).join('');
+  grid.querySelectorAll('.qn-btn').forEach(b=>{
+    b.addEventListener('click', function(){ currentQ=parseInt(this.dataset.i,10); SFX.click(); renderQuestion(); });
+  });
+}
+
+function updateQuizTop(){
+  document.getElementById('qCounter').textContent = (currentQ+1)+'/'+QUESTION_BANK.length;
+  const answeredCount = QUESTION_BANK.filter(questionAnswered).length;
+  document.getElementById('qAnsweredCount').textContent = answeredCount;
+  document.getElementById('qProgFill').style.width = (answeredCount/QUESTION_BANK.length*100)+'%';
+}
+
+function typeBadge(t){
+  const label = t==='PGS'?'Pilihan Ganda Sederhana':(t==='PGK'?'Pilihan Ganda Kompleks':'Pilihan Ganda Kompleks Kategori');
+  return `<span class="pill accent">${label}</span>`;
+}
+
+function renderQuestion(){
+  const q = QUESTION_BANK[currentQ];
+  const card = document.getElementById('questionCard');
+  let body='';
+
+  if(q.type==='PGS'){
+    body = `<div class="opt-list">` + q.options.map((opt,i)=>`
+      <div class="opt-item radio-mark ${q.answer===i?'selected':''}" data-i="${i}">
+        <span class="mark">${q.answer===i?'●':''}</span>
+        <span class="otext formula">${opt}</span>
+      </div>`).join('') + `</div>`;
+  }else if(q.type==='PGK'){
+    if(!Array.isArray(q.answer)) q.answer = new Array(q.options.length).fill(false);
+    body = `<div class="opt-list">` + q.options.map((opt,i)=>`
+      <div class="opt-item ${q.answer[i]?'selected':''}" data-i="${i}">
+        <span class="mark">${q.answer[i]?'✓':''}</span>
+        <span class="otext">${opt.text}</span>
+      </div>`).join('') + `</div>`;
+  }else if(q.type==='PGKK'){
+    if(!Array.isArray(q.answer)) q.answer = new Array(q.rows.length).fill(null);
+    body = `<div class="table-scroll"><table class="kat-table"><thead><tr><th>Pernyataan</th>${q.categories.map(c=>`<th class="catcol">${c}</th>`).join('')}</tr></thead><tbody>`+
+      q.rows.map((row,ri)=>`<tr>
+        <td>${row.text}</td>
+        ${q.categories.map((c,ci)=>`<td class="catcol"><input type="radio" class="kat-radio" name="kat_${q.id}_${ri}" data-ri="${ri}" data-ci="${ci}" ${q.answer[ri]===ci?'checked':''}></td>`).join('')}
+      </tr>`).join('') + `</tbody></table></div>`;
+  }
+
+  card.innerHTML = `
+    <div class="q-meta">${typeBadge(q.type)}<span class="pill amber">${q.topik}</span><span class="pill">${q.kompetensi}</span></div>
+    <div class="q-stem">Soal ${currentQ+1}. ${q.stem}</div>
+    ${body}
+  `;
+
+  if(q.type==='PGS'){
+    card.querySelectorAll('.opt-item').forEach(el=>{
+      el.addEventListener('click', function(){
+        q.answer = parseInt(this.dataset.i,10);
+        SFX.click();
+        renderQuestion();
+        updateQuizTop();
+        renderNavGrid();
+      });
+    });
+  }else if(q.type==='PGK'){
+    card.querySelectorAll('.opt-item').forEach(el=>{
+      el.addEventListener('click', function(){
+        const i = parseInt(this.dataset.i,10);
+        q.answer[i] = !q.answer[i];
+        SFX.click();
+        renderQuestion();
+        updateQuizTop();
+        renderNavGrid();
+      });
+    });
+  }else if(q.type==='PGKK'){
+    card.querySelectorAll('.kat-radio').forEach(el=>{
+      el.addEventListener('change', function(){
+        const ri = parseInt(this.dataset.ri,10), ci = parseInt(this.dataset.ci,10);
+        q.answer[ri] = ci;
+        SFX.click();
+        updateQuizTop();
+        renderNavGrid();
+      });
+    });
+  }
+
+  document.getElementById('btnPrevQ').disabled = currentQ===0;
+  document.getElementById('btnNextQ').disabled = currentQ===QUESTION_BANK.length-1;
+  updateQuizTop();
+  renderNavGrid();
+}
+
+function scoreQuestion(q){
+  if(q.type==='PGS'){ return q.answer===q.correct ? 1 : 0; }
+  if(q.type==='PGK'){
+    if(!Array.isArray(q.answer)) return 0;
+    const correctSet = q.options.map(o=>o.correct);
+    for(let i=0;i<correctSet.length;i++){ if(!!q.answer[i] !== !!correctSet[i]) return 0; }
+    return 1;
+  }
+  if(q.type==='PGKK'){
+    if(!Array.isArray(q.answer)) return 0;
+    let right=0;
+    q.rows.forEach((row,ri)=>{ if(q.answer[ri]===row.correctIdx) right++; });
+    return right / q.rows.length;
+  }
+  return 0;
+}
+
+function formatUserAnswer(q){
+  if(q.type==='PGS'){
+    return (q.answer!==null && q.answer!==undefined) ? stripHtml(q.options[q.answer]) : '(Belum dijawab)';
+  }
+  if(q.type==='PGK'){
+    if(!Array.isArray(q.answer) || !q.answer.some(Boolean)) return '(Belum dijawab)';
+    return q.options.filter((o,i)=>q.answer[i]).map(o=>stripHtml(o.text)).join(' | ');
+  }
+  if(q.type==='PGKK'){
+    if(!Array.isArray(q.answer) || !q.answer.some(v=>v!==null && v!==undefined)) return '(Belum dijawab)';
+    return q.rows.map((r,ri)=> stripHtml(r.text)+' → '+((q.answer[ri]!==null && q.answer[ri]!==undefined) ? q.categories[q.answer[ri]] : '-')).join(' || ');
+  }
+  return '-';
+}
+function formatCorrectAnswer(q){
+  if(q.type==='PGS'){ return stripHtml(q.options[q.correct]); }
+  if(q.type==='PGK'){ return q.options.filter(o=>o.correct).map(o=>stripHtml(o.text)).join(' | '); }
+  if(q.type==='PGKK'){ return q.rows.map(r=>stripHtml(r.text)+' → '+q.categories[r.correctIdx]).join(' || '); }
+  return '-';
+}
+
+function buildAnswerLog(){
+  return QUESTION_BANK.map((q,i)=>({
+    nomor: i+1,
+    tipe: q.type,
+    topik: q.topik,
+    kompetensi: q.kompetensi,
+    soal: stripHtml(q.stem),
+    jawabanSiswa: formatUserAnswer(q),
+    kunciJawaban: formatCorrectAnswer(q),
+    skor: Number(scoreQuestion(q).toFixed(2))
+  }));
+}
+
+function buildPayload(){
+  return {
+    participantNo: sessionState.participantNo,
+    nama: sessionState.nama,
+    kelas: sessionState.kelas,
+    bidang: sessionState.bidang,
+    waktuMulai: new Date(sessionState.waktuMulaiMs).toISOString(),
+    waktuSelesai: new Date(sessionState.waktuSelesaiMs).toISOString(),
+    durasiDetik: sessionState.durasiDetik,
+    skorAkhir: sessionState.skorAkhir,
+    levelKompetensi: sessionState.levelKompetensi,
+    rincianKompetensi: sessionState.rincianKompetensi,
+    logJawaban: sessionState.logJawaban
+  };
+}
+
+function setSendStatusLine(html){
+  const el = document.getElementById('sendStatusLine');
+  if(el) el.innerHTML = html;
+}
+
+function showResultModal(){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = '';
+  const noStr = 'TKA-'+String(sessionState.participantNo).padStart(4,'0');
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px;text-align:center;">
+      <div class="pill accent">RINGKASAN HASIL SESI</div>
+      <div class="result-score" style="margin:12px 0 2px;">${sessionState.skorAkhir}</div>
+      <div style="color:var(--muted);font-size:12.5px;margin-bottom:14px;">Skor akhir dari 100</div>
+      <div class="result-grid" style="grid-template-columns:1fr 1fr;text-align:left;">
+        <div class="result-item"><div class="lbl">Nomor Peserta</div><div style="font-family:var(--font-mono);font-weight:700;">${noStr}</div></div>
+        <div class="result-item"><div class="lbl">Durasi Pengerjaan</div><div style="font-family:var(--font-mono);font-weight:700;">${fmtDuration(sessionState.durasiDetik)}</div></div>
+        <div class="result-item" style="grid-column:1/-1;"><div class="lbl">Level Kompetensi</div><div style="font-weight:700;color:var(--accent);">${sessionState.levelKompetensi}</div></div>
+      </div>
+      <div id="sendStatusLine" style="margin:16px 0 4px;font-size:12px;color:var(--muted);">Mengirim data ke Google Sheets…</div>
+      <div class="modal-actions" style="justify-content:center;">
+        <button class="btn small" id="btnRetrySend">Kirim Ulang</button>
+        <button class="btn primary small" id="btnCloseResultModal">Tutup</button>
+      </div>
+    </div>`;
+  root.appendChild(overlay);
+  overlay.querySelector('#btnCloseResultModal').addEventListener('click', ()=>{ SFX.click(); root.innerHTML=''; });
+  overlay.querySelector('#btnRetrySend').addEventListener('click', async function(){
+    SFX.click();
+    setSendStatusLine('Mengirim ulang…');
+    const res = await sendSessionToSheet(buildPayload());
+    setSendStatusLine(res.ok ? '✅ Data berhasil dikirim ke Google Sheets' : '⚠️ Masih gagal — data tetap tersimpan di perangkat');
+  });
+}
+
+function finishQuiz(){
+  const unanswered = QUESTION_BANK.filter(q=>!questionAnswered(q)).length;
+  const doFinish = async ()=>{
+    let totalScore=0;
+    const byKompetensi = {};
+    Object.values(KOMPETENSI).forEach(k=>byKompetensi[k]={got:0,max:0});
+    QUESTION_BANK.forEach(q=>{
+      const s = scoreQuestion(q);
+      totalScore += s;
+      byKompetensi[q.kompetensi].got += s;
+      byKompetensi[q.kompetensi].max += 1;
+    });
+    const pct = Math.round(totalScore/QUESTION_BANK.length*100);
+    SFX.success();
+
+    sessionState.waktuSelesaiMs = Date.now();
+    sessionState.durasiDetik = Math.round((sessionState.waktuSelesaiMs - sessionState.waktuMulaiMs)/1000);
+    sessionState.skorAkhir = pct;
+    sessionState.levelKompetensi = getLevelKompetensi(pct);
+    sessionState.rincianKompetensi = byKompetensi;
+    sessionState.logJawaban = buildAnswerLog();
+
+    showResultModal();
+
+    const resultArea = document.getElementById('resultArea');
+    resultArea.innerHTML = `
+      <div class="result-card">
+        <div class="pill accent">HASIL LATIHAN</div>
+        <div class="result-score">${pct}</div>
+        <div style="color:var(--muted);font-size:13px;">dari 100 poin — ${totalScore.toFixed(1)} / ${QUESTION_BANK.length} soal setara benar · Durasi ${fmtDuration(sessionState.durasiDetik)}</div>
+        <div class="result-grid">
+          ${Object.entries(byKompetensi).map(([k,v])=>`
+            <div class="result-item">
+              <div class="lbl">${k}</div>
+              <div style="font-family:var(--font-mono);font-weight:700;">${v.got.toFixed(1)}/${v.max}</div>
+              <div class="barbg"><div class="barfg" style="width:${(v.got/v.max*100)||0}%"></div></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    resultArea.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+    const sendResult = await sendSessionToSheet(buildPayload());
+    if(sendResult.ok){
+      setSendStatusLine('✅ Data berhasil dikirim ke Google Sheets');
+    }else if(sendResult.reason==='not-configured'){
+      setSendStatusLine('ℹ️ URL Apps Script belum diatur — data tersimpan di perangkat');
+    }else{
+      setSendStatusLine('⚠️ Gagal mengirim — data tersimpan sementara di perangkat');
+    }
+  };
+  if(unanswered>0){
+    showModal('Masih Ada Soal Belum Dijawab', `Terdapat ${unanswered} soal yang belum dijawab. Tetap ingin melihat hasil sekarang?`, doFinish, 'Lihat Hasil');
+  }else{
+    doFinish();
+  }
+}
+
+/* =========================================================================================
+   10. INIT
+========================================================================================= */
+let appInitialized=false;
+function initAppOnce(){
+  if(appInitialized) return;
+  appInitialized=true;
+  renderTeori();
+  renderProsedur();
+  bindSimControls();
+  buildQuestionBank();
+  renderQuiz();
+  resetSimControls();
+  const btnFlush = document.getElementById('btnFlushPendingDev');
+  if(btnFlush){
+    btnFlush.addEventListener('click', async function(){
+      SFX.click();
+      const pendingBefore = getPendingQueue().length;
+      if(pendingBefore===0){ toast('Tidak ada data tertunda'); return; }
+      toast('Mengirim '+pendingBefore+' data tertunda…');
+      await attemptFlushPending(false);
+    });
+  }
+}
+
+})();
+</script>
+</body>
+</html>
