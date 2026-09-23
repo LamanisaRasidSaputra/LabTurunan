@@ -62,6 +62,8 @@ button{font-family:inherit;}
 .pill{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:600;border:1px solid var(--line);color:var(--muted);background:var(--bg-panel-2);}
 .pill.accent{color:var(--accent);border-color:var(--accent-dim);background:rgba(79,209,197,0.08);}
 .pill.amber{color:var(--accent-2);border-color:var(--accent-2-dim);background:rgba(246,173,85,0.08);}
+.pill.danger{color:var(--danger);border-color:var(--danger-dim);background:rgba(242,107,107,0.08);}
+.pill.success{color:var(--success);border-color:var(--success-dim);background:rgba(95,214,138,0.08);}
 
 /* ===================== LOGIN ===================== */
 #loginScreen{
@@ -487,6 +489,7 @@ select.sim-select{width:100%;background:var(--bg-deep);border:1px solid var(--li
       <button class="tab-btn" data-tab="prosedur"><span class="tab-ic">🧭</span>Prosedur</button>
       <button class="tab-btn" data-tab="simulasi"><span class="tab-ic">📈</span>Simulasi</button>
       <button class="tab-btn" data-tab="latihan"><span class="tab-ic">📝</span>Latihan TKA</button>
+      <button class="tab-btn" data-tab="ujian"><span class="tab-ic">🎓</span>Ujian</button>
       <button class="tab-btn" data-tab="pengembang"><span class="tab-ic">⚙️</span>Pengembang</button>
       <div class="tab-rail-foot">Simulasi TKA v1.0<br>Materi: Turunan Fungsi</div>
     </nav>
@@ -596,6 +599,15 @@ select.sim-select{width:100%;background:var(--bg-deep);border:1px solid var(--li
         <div id="quizArea"></div>
       </section>
 
+      <!-- UJIAN -->
+      <section class="panel hidden" id="tab-ujian">
+        <div class="panel-head">
+          <h1>Ujian Turunan Fungsi</h1>
+          <p>25 soal ujian dengan variasi tingkat kesulitan — <span class="pill success" style="vertical-align:middle;">Mudah</span> <span class="pill amber" style="vertical-align:middle;">Sedang</span> <span class="pill danger" style="vertical-align:middle;">Sulit</span> — dikerjakan dalam waktu terbatas untuk mengukur pemahaman turunan fungsi secara menyeluruh.</p>
+        </div>
+        <div id="ujianArea"></div>
+      </section>
+
       <!-- PENGEMBANG -->
       <section class="panel hidden" id="tab-pengembang">
         <div class="panel-head">
@@ -674,7 +686,7 @@ select.sim-select{width:100%;background:var(--bg-deep);border:1px solid var(--li
    4. Salin URL Web App hasil deploy, tempelkan ke GAS_WEB_APP_URL di bawah ini.
 ========================================================================================= */
 const CONFIG = {
-  GAS_WEB_APP_URL: 'https://script.google.com/macros/s/AKfycbzIQtGO9WKWygMWCMKyplA0KaUHeQu3cMSyQTe4sE71mGaWygJiEOI_5O9HhG33BcbsUw/exec',
+  GAS_WEB_APP_URL: 'GANTI_DENGAN_URL_WEB_APP_APPS_SCRIPT_ANDA',
   SPREADSHEET_URL: 'https://docs.google.com/spreadsheets/d/1wzO1eUFUgQSJT0ysS_2lOrM3mZq9FlhMVaEx7r882RM/edit?usp=sharing',
   PENDING_KEY: 'tka_matematika_pending_submissions',
   PARTICIPANT_KEY: 'tka_matematika_last_participant_no'
@@ -1016,7 +1028,7 @@ function showModal(title, msg, onConfirm, confirmLabel){
 }
 
 document.getElementById('btnReset').addEventListener('click', function(){
-  showModal('Reset Sesi Latihan', 'Progres Latihan Soal dan pengaturan Simulasi akan diatur ulang, serta soal akan diacak kembali. Lanjutkan?', function(){
+  showModal('Reset Sesi Latihan &amp; Ujian', 'Progres Latihan Soal, Ujian, dan pengaturan Simulasi akan diatur ulang, serta soal akan diacak kembali. Lanjutkan?', function(){
     SFX.reset();
     buildQuestionBank();
     renderQuiz();
@@ -1024,6 +1036,8 @@ document.getElementById('btnReset').addEventListener('click', function(){
     sessionState.waktuMulaiMs = Date.now();
     sessionState.waktuSelesaiMs = null;
     sessionState.skorAkhir = null;
+    buildUjianBank();
+    renderUjianQuiz();
     toast('Sesi berhasil di-reset');
   }, 'Reset Sekarang');
 });
@@ -1738,6 +1752,75 @@ function buildQuestionBank(){
 }
 
 /* =========================================================================================
+   8B. BANK SOAL UJIAN — 25 SOAL, VARIASI TINGKAT KESULITAN (MUDAH / SEDANG / SULIT)
+   Menggunakan kembali generator PGS yang sudah ada (tanpa mengubahnya) untuk tingkat
+   Mudah &amp; Sedang, ditambah 3 generator baru untuk tingkat Sulit.
+========================================================================================= */
+function genSecondDerivativePangkat(){
+  const a=randIntNZ(2,6), n=randInt(3,5);
+  const correct = term(a*n*(n-1), n-2) || '0';
+  const d1 = term(a*n, n-1);
+  const d2 = term(a*n*(n-1), n-1);
+  const d3 = term(a*n, n-2);
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PENALARAN, topik:'Turunan Kedua',
+    stem:`Turunan kedua (f''(x)) dari f(x) = ${term(a,n)} adalah ...`, options, correct:ci};
+}
+function genChainProductCombo(){
+  const n=randInt(2,3), trig=pick(['sin','cos']);
+  let a=randIntNZ(1,3), b=randInt(-4,4);
+  if(a===1 && b===0) b = pick([-2,-1,1,2]);
+  const base = binBase(a,b);
+  const u = 'x'+sup(n), uPrime = term(n,n-1);
+  let correct, d1, d2, d3;
+  if(trig==='sin'){
+    const vTerm = coefTimes(a,'cos'+base);
+    correct = `${uPrime}·sin${base} + ${u}·${vTerm}`;
+    d1 = `${uPrime}·${vTerm}`;
+    d2 = `${uPrime}·sin${base} - ${u}·${vTerm}`;
+    d3 = `${u}·${vTerm}`;
+  }else{
+    const vTerm = coefTimes(a,'sin'+base);
+    correct = `${uPrime}·cos${base} - ${u}·${vTerm}`;
+    d1 = `${uPrime}·(-${vTerm})`;
+    d2 = `${uPrime}·cos${base} + ${u}·${vTerm}`;
+    d3 = `-${u}·${vTerm}`;
+  }
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.KONEKSI, topik:'Kombinasi Hasil Kali &amp; Rantai',
+    stem:`Turunan dari f(x) = x${sup(n)}·${trig}${base} adalah ...`, options, correct:ci};
+}
+function genOptimizationContext(){
+  const x0=randInt(2,6), a=randIntNZ(1,3), b=2*a*x0;
+  const Lmax = a*x0*x0;
+  const LStr = joinTerms([term(-a,2), term(b,1)]);
+  const correct = fmtNum(Lmax)+' juta rupiah';
+  const d1 = fmtNum(x0)+' juta rupiah';
+  const d2 = fmtNum(b*x0)+' juta rupiah';
+  const d3 = fmtNum(-Lmax)+' juta rupiah';
+  const {options,correct:ci}=uniqueOptions(correct,[d1,d2,d3]);
+  return {type:'PGS', kompetensi:KOMPETENSI.PEMECAHAN, topik:'Optimisasi (Nilai Maksimum)',
+    stem:`Keuntungan suatu usaha dimodelkan oleh L(x) = ${LStr} (dalam juta rupiah, x dalam ratusan unit produk). Keuntungan maksimum yang dapat dicapai adalah ...`, options, correct:ci};
+}
+
+const ujianMudahGenerators=[genPowerRule,genSumRule,genTrigBasic];
+const ujianSedangGenerators=[genProductRule,genQuotientRule,genChainRulePoly,genChainRuleTrig,genMixedTrigPoly];
+const ujianSulitGenerators=[genTangentGradient,genStationaryPoint,genRealWorldRate,genSecondDerivativePangkat,genChainProductCombo,genOptimizationContext];
+
+function generateLeveledSet(generators, count, level){
+  return generateSet(generators, count).map(q=>Object.assign({}, q, {level:level}));
+}
+
+let UJIAN_BANK = [];
+function buildUjianBank(){
+  const mudah = generateLeveledSet(ujianMudahGenerators, 9, 'Mudah');
+  const sedang = generateLeveledSet(ujianSedangGenerators, 8, 'Sedang');
+  const sulit = generateLeveledSet(ujianSulitGenerators, 8, 'Sulit');
+  UJIAN_BANK = shuffle([...mudah, ...sedang, ...sulit]).map((q,i)=>Object.assign({id:i, answer:null}, q));
+}
+function levelPillClass(level){ return level==='Mudah' ? 'success' : (level==='Sedang' ? 'amber' : 'danger'); }
+
+/* =========================================================================================
    9. RENDER LATIHAN SOAL
 ========================================================================================= */
 let currentQ = 0;
@@ -2036,6 +2119,275 @@ function finishQuiz(){
 }
 
 /* =========================================================================================
+   9B. RENDER &amp; LOGIKA UJIAN (25 soal, tingkat kesulitan Mudah/Sedang/Sulit, dengan waktu)
+   Blok ini berdiri sendiri, menggunakan kembali fungsi murni yang sudah ada
+   (scoreQuestion, formatUserAnswer, formatCorrectAnswer, stripHtml, fmtDuration,
+   getLevelKompetensi, sendSessionToSheet, showModal, typeBadge, SFX, toast) tanpa mengubahnya.
+========================================================================================= */
+const UJIAN_DURASI_DETIK = 40*60; // 40 menit pengerjaan
+let currentUjianQ = 0;
+const sessionUjianState = {
+  waktuMulaiMs:null, waktuSelesaiMs:null, durasiDetik:0,
+  skorAkhir:null, levelKompetensi:null, rincianKompetensi:null, rincianTingkatKesulitan:null,
+  logJawaban:[], timerHandle:null, timerSisaDetik:UJIAN_DURASI_DETIK, selesai:false
+};
+
+function questionAnsweredUjian(q){ return q.answer!==null && q.answer!==undefined; }
+
+function renderUjianQuiz(){
+  currentUjianQ = 0;
+  sessionUjianState.selesai = false;
+  sessionUjianState.waktuMulaiMs = Date.now();
+  sessionUjianState.waktuSelesaiMs = null;
+  sessionUjianState.skorAkhir = null;
+  sessionUjianState.timerSisaDetik = UJIAN_DURASI_DETIK;
+
+  const area = document.getElementById('ujianArea');
+  area.innerHTML = `
+    <div class="quiz-top">
+      <div class="quiz-stat">Soal <b id="ujianQCounter">1/${UJIAN_BANK.length}</b></div>
+      <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="ujianQProgFill"></div></div>
+      <div class="quiz-stat">Terjawab <b id="ujianQAnsweredCount">0</b>/${UJIAN_BANK.length}</div>
+      <div class="quiz-stat">⏱ Sisa Waktu <b id="ujianTimer">40:00</b></div>
+    </div>
+    <div class="quiz-layout">
+      <div>
+        <div class="question-card" id="ujianQuestionCard"></div>
+        <div class="quiz-actions">
+          <button class="btn" id="btnPrevUjianQ">← Sebelumnya</button>
+          <button class="btn primary" id="btnNextUjianQ">Selanjutnya →</button>
+        </div>
+        <div class="quiz-finish-row">
+          <button class="btn primary" id="btnFinishUjian">Selesai &amp; Kumpulkan Ujian</button>
+        </div>
+        <div id="ujianResultArea" style="margin-top:18px;"></div>
+      </div>
+      <div class="quiz-nav-grid" id="ujianQuizNavGrid"></div>
+    </div>
+  `;
+  document.getElementById('btnPrevUjianQ').addEventListener('click', ()=>{ if(currentUjianQ>0){ currentUjianQ--; SFX.click(); renderUjianQuestion(); } });
+  document.getElementById('btnNextUjianQ').addEventListener('click', ()=>{ if(currentUjianQ<UJIAN_BANK.length-1){ currentUjianQ++; SFX.click(); renderUjianQuestion(); } });
+  document.getElementById('btnFinishUjian').addEventListener('click', ()=>finishUjian(false));
+  renderUjianNavGrid();
+  renderUjianQuestion();
+  startUjianTimer();
+}
+
+function renderUjianNavGrid(){
+  const grid = document.getElementById('ujianQuizNavGrid');
+  if(!grid) return;
+  grid.innerHTML = UJIAN_BANK.map((q,i)=>`<button class="qn-btn ${questionAnsweredUjian(q)?'answered':''} ${i===currentUjianQ?'current':''}" data-i="${i}">${i+1}</button>`).join('');
+  grid.querySelectorAll('.qn-btn').forEach(b=>{
+    b.addEventListener('click', function(){ currentUjianQ=parseInt(this.dataset.i,10); SFX.click(); renderUjianQuestion(); });
+  });
+}
+
+function updateUjianQuizTop(){
+  const counter = document.getElementById('ujianQCounter');
+  if(!counter) return;
+  counter.textContent = (currentUjianQ+1)+'/'+UJIAN_BANK.length;
+  const answeredCount = UJIAN_BANK.filter(questionAnsweredUjian).length;
+  document.getElementById('ujianQAnsweredCount').textContent = answeredCount;
+  document.getElementById('ujianQProgFill').style.width = (answeredCount/UJIAN_BANK.length*100)+'%';
+}
+
+function renderUjianQuestion(){
+  const q = UJIAN_BANK[currentUjianQ];
+  const card = document.getElementById('ujianQuestionCard');
+  if(!card) return;
+  const body = `<div class="opt-list">` + q.options.map((opt,i)=>`
+    <div class="opt-item radio-mark ${q.answer===i?'selected':''}" data-i="${i}">
+      <span class="mark">${q.answer===i?'●':''}</span>
+      <span class="otext formula">${opt}</span>
+    </div>`).join('') + `</div>`;
+
+  card.innerHTML = `
+    <div class="q-meta">${typeBadge(q.type)}<span class="pill ${levelPillClass(q.level)}">${q.level}</span><span class="pill amber">${q.topik}</span><span class="pill">${q.kompetensi}</span></div>
+    <div class="q-stem">Soal ${currentUjianQ+1}. ${q.stem}</div>
+    ${body}
+  `;
+  card.querySelectorAll('.opt-item').forEach(el=>{
+    el.addEventListener('click', function(){
+      if(sessionUjianState.selesai) return;
+      q.answer = parseInt(this.dataset.i,10);
+      SFX.click();
+      renderUjianQuestion();
+      updateUjianQuizTop();
+      renderUjianNavGrid();
+    });
+  });
+
+  document.getElementById('btnPrevUjianQ').disabled = currentUjianQ===0;
+  document.getElementById('btnNextUjianQ').disabled = currentUjianQ===UJIAN_BANK.length-1;
+  updateUjianQuizTop();
+  renderUjianNavGrid();
+}
+
+function startUjianTimer(){
+  stopUjianTimer();
+  updateUjianTimerDisplay();
+  sessionUjianState.timerHandle = setInterval(function(){
+    sessionUjianState.timerSisaDetik--;
+    updateUjianTimerDisplay();
+    if(sessionUjianState.timerSisaDetik<=0){
+      stopUjianTimer();
+      toast('Waktu ujian habis — jawaban dikumpulkan otomatis');
+      finishUjian(true);
+    }
+  }, 1000);
+}
+function stopUjianTimer(){
+  if(sessionUjianState.timerHandle){ clearInterval(sessionUjianState.timerHandle); sessionUjianState.timerHandle=null; }
+}
+function updateUjianTimerDisplay(){
+  const el = document.getElementById('ujianTimer');
+  if(el) el.textContent = fmtDuration(Math.max(0, sessionUjianState.timerSisaDetik));
+}
+
+function buildUjianAnswerLog(){
+  return UJIAN_BANK.map((q,i)=>({
+    nomor: i+1,
+    tipe: q.type,
+    topik: q.topik,
+    kompetensi: q.kompetensi,
+    tingkatKesulitan: q.level,
+    soal: stripHtml(q.stem),
+    jawabanSiswa: formatUserAnswer(q),
+    kunciJawaban: formatCorrectAnswer(q),
+    skor: Number(scoreQuestion(q).toFixed(2))
+  }));
+}
+
+function buildUjianPayload(){
+  return {
+    jenisSesi: 'Ujian',
+    participantNo: sessionState.participantNo,
+    nama: sessionState.nama,
+    kelas: sessionState.kelas,
+    bidang: sessionState.bidang,
+    waktuMulai: new Date(sessionUjianState.waktuMulaiMs).toISOString(),
+    waktuSelesai: new Date(sessionUjianState.waktuSelesaiMs).toISOString(),
+    durasiDetik: sessionUjianState.durasiDetik,
+    skorAkhir: sessionUjianState.skorAkhir,
+    levelKompetensi: sessionUjianState.levelKompetensi,
+    rincianKompetensi: sessionUjianState.rincianKompetensi,
+    rincianTingkatKesulitan: sessionUjianState.rincianTingkatKesulitan,
+    logJawaban: sessionUjianState.logJawaban
+  };
+}
+
+function showUjianResultModal(){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = '';
+  const noStr = 'TKA-'+String(sessionState.participantNo).padStart(4,'0');
+  const overlay = document.createElement('div');
+  overlay.className='modal-overlay';
+  const tkRows = Object.entries(sessionUjianState.rincianTingkatKesulitan||{}).map(([lvl,v])=>
+    `<div class="result-item"><div class="lbl">${lvl}</div><div style="font-family:var(--font-mono);font-weight:700;">${v.got.toFixed(1)}/${v.max}</div></div>`
+  ).join('');
+  overlay.innerHTML = `
+    <div class="modal-box" style="max-width:420px;text-align:center;">
+      <div class="pill accent">HASIL UJIAN</div>
+      <div class="result-score" style="margin:12px 0 2px;">${sessionUjianState.skorAkhir}</div>
+      <div style="color:var(--muted);font-size:12.5px;margin-bottom:14px;">Skor akhir dari 100</div>
+      <div class="result-grid" style="grid-template-columns:1fr 1fr;text-align:left;">
+        <div class="result-item"><div class="lbl">Nomor Peserta</div><div style="font-family:var(--font-mono);font-weight:700;">${noStr}</div></div>
+        <div class="result-item"><div class="lbl">Durasi Pengerjaan</div><div style="font-family:var(--font-mono);font-weight:700;">${fmtDuration(sessionUjianState.durasiDetik)}</div></div>
+        <div class="result-item" style="grid-column:1/-1;"><div class="lbl">Level Kompetensi</div><div style="font-weight:700;color:var(--accent);">${sessionUjianState.levelKompetensi}</div></div>
+        ${tkRows}
+      </div>
+      <div id="ujianSendStatusLine" style="margin:16px 0 4px;font-size:12px;color:var(--muted);">Mengirim data ke Google Sheets…</div>
+      <div class="modal-actions" style="justify-content:center;">
+        <button class="btn small" id="btnRetrySendUjian">Kirim Ulang</button>
+        <button class="btn primary small" id="btnCloseUjianResultModal">Tutup</button>
+      </div>
+    </div>`;
+  root.appendChild(overlay);
+  overlay.querySelector('#btnCloseUjianResultModal').addEventListener('click', ()=>{ SFX.click(); root.innerHTML=''; });
+  overlay.querySelector('#btnRetrySendUjian').addEventListener('click', async function(){
+    SFX.click();
+    const line = document.getElementById('ujianSendStatusLine');
+    if(line) line.innerHTML = 'Mengirim ulang…';
+    const res = await sendSessionToSheet(buildUjianPayload());
+    if(line) line.innerHTML = res.ok ? '✅ Data berhasil dikirim ke Google Sheets' : '⚠️ Masih gagal — data tetap tersimpan di perangkat';
+  });
+}
+
+function finishUjian(autoSubmit){
+  if(sessionUjianState.selesai) return;
+  const unanswered = UJIAN_BANK.filter(q=>!questionAnsweredUjian(q)).length;
+  const doFinish = async ()=>{
+    sessionUjianState.selesai = true;
+    stopUjianTimer();
+    let totalScore=0;
+    const byKompetensi = {};
+    Object.values(KOMPETENSI).forEach(k=>byKompetensi[k]={got:0,max:0});
+    const byLevel = { 'Mudah':{got:0,max:0}, 'Sedang':{got:0,max:0}, 'Sulit':{got:0,max:0} };
+    UJIAN_BANK.forEach(q=>{
+      const s = scoreQuestion(q);
+      totalScore += s;
+      byKompetensi[q.kompetensi].got += s;
+      byKompetensi[q.kompetensi].max += 1;
+      byLevel[q.level].got += s;
+      byLevel[q.level].max += 1;
+    });
+    const pct = Math.round(totalScore/UJIAN_BANK.length*100);
+    SFX.success();
+
+    sessionUjianState.waktuSelesaiMs = Date.now();
+    sessionUjianState.durasiDetik = Math.round((sessionUjianState.waktuSelesaiMs - sessionUjianState.waktuMulaiMs)/1000);
+    sessionUjianState.skorAkhir = pct;
+    sessionUjianState.levelKompetensi = getLevelKompetensi(pct);
+    sessionUjianState.rincianKompetensi = byKompetensi;
+    sessionUjianState.rincianTingkatKesulitan = byLevel;
+    sessionUjianState.logJawaban = buildUjianAnswerLog();
+
+    showUjianResultModal();
+
+    const resultArea = document.getElementById('ujianResultArea');
+    resultArea.innerHTML = `
+      <div class="result-card">
+        <div class="pill accent">HASIL UJIAN</div>
+        <div class="result-score">${pct}</div>
+        <div style="color:var(--muted);font-size:13px;">dari 100 poin — ${totalScore.toFixed(1)} / ${UJIAN_BANK.length} soal setara benar · Durasi ${fmtDuration(sessionUjianState.durasiDetik)}</div>
+        <div class="result-grid">
+          ${Object.entries(byLevel).map(([k,v])=>`
+            <div class="result-item">
+              <div class="lbl">Tingkat ${k}</div>
+              <div style="font-family:var(--font-mono);font-weight:700;">${v.got.toFixed(1)}/${v.max}</div>
+              <div class="barbg"><div class="barfg" style="width:${(v.got/v.max*100)||0}%"></div></div>
+            </div>
+          `).join('')}
+          ${Object.entries(byKompetensi).map(([k,v])=>`
+            <div class="result-item">
+              <div class="lbl">${k}</div>
+              <div style="font-family:var(--font-mono);font-weight:700;">${v.got.toFixed(1)}/${v.max}</div>
+              <div class="barbg"><div class="barfg" style="width:${(v.got/v.max*100)||0}%"></div></div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    resultArea.scrollIntoView({behavior:'smooth', block:'nearest'});
+
+    const sendResult = await sendSessionToSheet(buildUjianPayload());
+    const line = document.getElementById('ujianSendStatusLine');
+    if(sendResult.ok){
+      if(line) line.innerHTML = '✅ Data berhasil dikirim ke Google Sheets';
+    }else if(sendResult.reason==='not-configured'){
+      if(line) line.innerHTML = 'ℹ️ URL Apps Script belum diatur — data tersimpan di perangkat';
+    }else{
+      if(line) line.innerHTML = '⚠️ Gagal mengirim — data tersimpan sementara di perangkat';
+    }
+  };
+  if(!autoSubmit && unanswered>0){
+    showModal('Masih Ada Soal Belum Dijawab', `Terdapat ${unanswered} soal yang belum dijawab. Tetap ingin mengumpulkan ujian sekarang?`, doFinish, 'Kumpulkan Ujian');
+  }else{
+    doFinish();
+  }
+}
+
+/* =========================================================================================
    10. INIT
 ========================================================================================= */
 let appInitialized=false;
@@ -2048,6 +2400,8 @@ function initAppOnce(){
   buildQuestionBank();
   renderQuiz();
   resetSimControls();
+  buildUjianBank();
+  renderUjianQuiz();
   const btnFlush = document.getElementById('btnFlushPendingDev');
   if(btnFlush){
     btnFlush.addEventListener('click', async function(){
